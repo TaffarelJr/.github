@@ -1,0 +1,99 @@
+name: ⏱️ Performance issue
+description: Report a performance problem or regression
+assignees: [TaffarelJr]
+labels: [performance]
+body:
+  - type: markdown
+    attributes:
+      value: >
+        Thanks for helping us make our code faster! 🤗 See the
+        [`CONTRIBUTING.md`](https://github.com/TaffarelJr/.github/blob/main/CONTRIBUTING.md#how-do-i-submit-a-good-bug-report)
+        file for tips on writing an effective performance issue.
+
+  - type: checkboxes
+    id: prerequisites
+    attributes:
+      label: Prerequisites
+      description: >
+        Please check these boxes before submitting a performance issue.
+      options:
+        - label: >
+            I've searched the
+            [Documentation](https://github.com/TaffarelJr/.github/tree/main/docs)
+            and [Wiki](https://github.com/TaffarelJr/.github/wiki)
+            for information on this topic,
+            and I'm sure it's not performing the way it should.
+          required: true
+        - label: >
+            I've searched and/or posted in the
+            [Discussions](https://github.com/TaffarelJr/.github/discussions)
+            about this problem.
+          required: true
+        - label: >
+            I've searched the existing
+            [Issues](https://github.com/TaffarelJr/.github/issues)
+            and this problem has not been reported yet.
+          required: true
+
+  - type: textarea
+    id: description
+    attributes:
+      label: Description
+      description: Give a clear and concise description of the problem.
+      placeholder: Description
+    validations:
+      required: true
+
+  - type: textarea
+    id: repro-steps
+    attributes:
+      label: Reproduction Steps
+      description: >
+        Include minimal steps to reproduce the performance issue.
+        Provide the smallest possible code snippet or project,
+        with steps to run it.
+        Use text rather than images when possible
+        (to help with searching).
+      placeholder: Minimal reproduction steps
+    validations:
+      required: true
+
+  - type: textarea
+    id: data
+    attributes:
+      label: Relevant Data
+      description: >
+        Include benchmarks, graphs, timings, or measurements.
+        Include both 'before' and 'after' data when applicable.
+        Use text rather than images when possible
+        (to help with searching).
+      placeholder: Relevant data
+    validations:
+      required: false
+
+  - type: textarea
+    id: configuration
+    attributes:
+      label: Configuration
+      description: |
+        In what environment did the problem occur (as applicable)?
+        - Package version
+        - Framework version
+        - OS and version
+        - Architecture (x86, x64, ARM, ARM64)
+        - Web browser(s)
+        - Hardware specs
+      placeholder: Configuration details
+    validations:
+      required: false
+
+  - type: textarea
+    id: additional-info
+    attributes:
+      label: Additional Information
+      description: >
+        Have any insights about the problem?
+        Include any relevant code, changes, or related issues here.
+      placeholder: Additional information
+    validations:
+      required: false

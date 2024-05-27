@@ -1,0 +1,111 @@
+name: 🪲 Bug report
+description: Report something that's not working as expected
+assignees: [TaffarelJr]
+labels: [bug]
+body:
+  - type: markdown
+    attributes:
+      value: >
+        Thanks for helping to fix something that's broken! 🤗 See the
+        [`CONTRIBUTING.md`](https://github.com/TaffarelJr/.github/blob/main/CONTRIBUTING.md#how-do-i-submit-a-good-bug-report)
+        file for tips on writing an effective bug report.
+
+  - type: checkboxes
+    id: prerequisites
+    attributes:
+      label: Prerequisites
+      description: >
+        Please check these boxes before submitting a new bug.
+      options:
+        - label: >
+            I've searched the
+            [Documentation](https://github.com/TaffarelJr/.github/tree/main/docs)
+            and [Wiki](https://github.com/TaffarelJr/.github/wiki)
+            for information on this topic,
+            and I'm sure it's a bug.
+          required: true
+        - label: >
+            I've searched and/or posted in the
+            [Discussions](https://github.com/TaffarelJr/.github/discussions)
+            about this bug.
+          required: true
+        - label: >
+            I've searched the existing
+            [Issues](https://github.com/TaffarelJr/.github/issues)
+            and this bug has not been reported yet.
+          required: true
+
+  - type: textarea
+    id: description
+    attributes:
+      label: Description
+      description: Give a clear and concise description of the bug.
+      placeholder: Description
+    validations:
+      required: true
+
+  - type: textarea
+    id: repro-steps
+    attributes:
+      label: Reproduction Steps
+      description: >
+        Include minimal steps to reproduce the bug.
+        Provide the smallest possible code snippet or project,
+        with steps to run it.
+        Use text rather than images when possible
+        (to help with searching).
+      placeholder: Minimal reproduction steps
+    validations:
+      required: true
+
+  - type: textarea
+    id: expected-behavior
+    attributes:
+      label: Expected Behavior
+      description: >
+        Describe what should happen instead.
+        Use text rather than images when possible
+        (to help with searching).
+      placeholder: Expected behavior
+    validations:
+      required: true
+
+  - type: textarea
+    id: actual-behavior
+    attributes:
+      label: Actual Behavior
+      description: >
+        Describe what actually happens.
+        Include any error messages or stacktraces if available.
+        Use text rather than images when possible
+        (to help with searching).
+      placeholder: Actual behavior
+    validations:
+      required: true
+
+  - type: textarea
+    id: configuration
+    attributes:
+      label: Configuration
+      description: |
+        In what environment did the bug occur (as applicable)?
+        - Package version
+        - Framework version
+        - OS and version
+        - Architecture (x86, x64, ARM, ARM64)
+        - Web browser(s)
+        - Hardware specs
+      placeholder: Configuration details
+    validations:
+      required: false
+
+  - type: textarea
+    id: additional-info
+    attributes:
+      label: Additional Information
+      description: >
+        Have any insights about the bug?
+        Include any relevant code, changes, or related issues here.
+      placeholder: Additional information
+    validations:
+      required: false

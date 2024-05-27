@@ -74,6 +74,7 @@ flowchart TB
 
 - [Description of Files in This Template Repo](#description-of-files-in-this-template-repo)
   - [Community Health Files](#community-health-files)
+  - [GitHub Templates](#github-templates)
   - [Other Files](#other-files)
 
 ## Description of Files in This Template Repo
@@ -91,6 +92,15 @@ flowchart TB
 | [`SECURITY.md`][security]    |                              |                         ✅                          |            |
 | [`SUPPORT.md`][support]      |                              |                         ✅                          |            |
 
+### [GitHub Templates][templates]
+
+| Template                          | Exists only</br>in this repo | Synced to<br/>(and overridden in)<br/>derived repos | Notes               |
+| :-------------------------------- | :--------------------------: | :-------------------------------------------------: | :------------------ |
+| Discussion category forms         |                              |                                                     | Not implemented yet |
+| [Issue templates][issues]         |                              |                         ✅                          |                     |
+| [Issue template chooser][chooser] |              ✅              |                                                     |                     |
+| [Pull request template][prs]      |                              |                         ✅                          |                     |
+
 ### Other Files
 
 | File                            | Exists only</br>in this repo | Synced to<br/>(and overridden in)<br/>derived repos | Purpose                                     |
@@ -101,15 +111,18 @@ flowchart TB
 
 <!-- Source Code URIs -->
 
+[chooser]: ./.github/ISSUE_TEMPLATE/config.yml
 [coc]: ./CODE_OF_CONDUCT.md
 [codeOwners]: ./.github/CODEOWNERS
 [contrib]: ./CONTRIBUTING.md
 [docs]: ./docs/
 [editorConfig]: ./.editorconfig
 [funding]: ./.github/FUNDING.yml
+[issues]: ./.github/ISSUE_TEMPLATE/
 [license]: ./LICENSE
 [message]: ./.gitmessage
 [messageGuide]: ./docs/StyleGuides.md#commit-messages
+[prs]: ./.github/pull_request_template.md
 [security]: ./SECURITY.md
 [styleGuides]: ./docs/StyleGuides.md
 [support]: ./SUPPORT.md

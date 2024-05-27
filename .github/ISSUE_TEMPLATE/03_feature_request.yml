@@ -1,0 +1,106 @@
+name: ✨ Feature request
+description: Suggest an idea or enhancement
+assignees: [TaffarelJr]
+labels: [enhancement]
+body:
+  - type: markdown
+    attributes:
+      value: >
+        Thanks for helping us add more value! 🤗 See the
+        [`CONTRIBUTING.md`](https://github.com/TaffarelJr/.github/blob/main/CONTRIBUTING.md#how-do-i-submit-a-good-enhancement-suggestion)
+        file for tips on writing an effective enhancement suggestion.
+
+  - type: checkboxes
+    id: prerequisites
+    attributes:
+      label: Prerequisites
+      description: >
+        Please check these boxes before submitting a feature request.
+      options:
+        - label: >
+            I've searched the
+            [Documentation](https://github.com/TaffarelJr/.github/tree/main/docs)
+            and [Wiki](https://github.com/TaffarelJr/.github/wiki)
+            for information on this topic,
+            and I'm sure it's not currently available.
+          required: true
+        - label: >
+            I've searched and/or posted in the
+            [Discussions](https://github.com/TaffarelJr/.github/discussions)
+            about this enhancement.
+          required: true
+        - label: >
+            The enhancement is appropriate
+            and in-line with the goals of this project,
+            and will benefit the majority of users.
+          required: true
+        - label: >
+            I've searched the existing
+            [Issues](https://github.com/TaffarelJr/.github/issues)
+            and this enhancement has not been suggested yet.
+          required: true
+
+  - type: textarea
+    id: description
+    attributes:
+      label: Description
+      description: Describe the purpose and value of this enhancement.
+      placeholder: Description
+    validations:
+      required: true
+
+  - type: textarea
+    id: proposal
+    attributes:
+      label: API Proposal
+      description: Provide the specific API signature you're proposing.
+      placeholder: API proposal
+      value: |
+        ```csharp
+        namespace MyProject;
+
+        public class MyClass<T>
+        {
+            public void Foo(T item);
+        }
+        ```
+    validations:
+      required: true
+
+  - type: textarea
+    id: usage
+    attributes:
+      label: API Usage
+      description: >
+        Show code examples of how your proposed API would be used.
+        This helps us assess if the API is functional and intuitive.
+      placeholder: API usage
+      value: |
+        ```csharp
+        var c = new MyClass<int>();
+        c.Foo(42);
+        ```
+    validations:
+      required: true
+
+  - type: textarea
+    id: alternatives
+    attributes:
+      label: Alternative Designs
+      description: >
+        Describe any alternative approaches you've considered.
+        For example, could existing APIs be modified instead?
+      placeholder: Alternative designs
+    validations:
+      required: false
+
+  - type: textarea
+    id: risks
+    attributes:
+      label: Risks
+      description: >
+        Mention any potential risks with this proposal,
+        such as breaking changes or performance impacts.
+      placeholder: Risks
+    validations:
+      required: false
