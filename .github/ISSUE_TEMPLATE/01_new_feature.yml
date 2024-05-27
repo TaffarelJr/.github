@@ -1,0 +1,119 @@
+name: ✨ New Feature
+description: Suggest a completely new capability or functionality
+assignees: [TaffarelJr]
+labels: [new feature]
+body:
+  - type: markdown
+    attributes:
+      value: >
+        Thanks for helping us add more value! 🤗 See the
+        [`CONTRIBUTING.md`](https://github.com/TaffarelJr/.github/blob/main/CONTRIBUTING.md#how-do-i-submit-a-good-enhancement-suggestion)
+        file for tips on writing an effective feature request.
+
+  - type: checkboxes
+    id: prerequisites
+    attributes:
+      label: Prerequisites
+      description: >
+        Please check these boxes before submitting a new feature request.
+      options:
+        - label: >
+            I've searched the
+            [Documentation](https://github.com/TaffarelJr/.github/tree/main/docs)
+            and [Wiki](https://github.com/TaffarelJr/.github/wiki)
+            for information on this topic,
+            and I'm sure this feature doesn't currently exist.
+          required: true
+        - label: >
+            I've searched and/or posted in the
+            [Discussions](https://github.com/TaffarelJr/.github/discussions)
+            about this feature.
+          required: true
+        - label: >
+            The feature is appropriate
+            and in-line with the goals of this project,
+            and will benefit the majority of users.
+          required: true
+        - label: >
+            I've searched the existing
+            [Issues](https://github.com/TaffarelJr/.github/issues)
+            and this feature has not been suggested yet.
+          required: true
+
+  - type: textarea
+    id: problem
+    attributes:
+      label: Problem Statement
+      description: >
+        Describe the problem or need that this feature would address.
+        What gap does it fill?
+      placeholder: What problem does this solve?
+    validations:
+      required: true
+
+  - type: textarea
+    id: description
+    attributes:
+      label: Feature Description
+      description: >
+        Describe the feature and how it would work.
+        Be as specific as possible.
+      placeholder: Detailed description of the proposed feature
+    validations:
+      required: true
+
+  - type: textarea
+    id: proposal
+    attributes:
+      label: API Proposal
+      description: Provide the specific API signature you're proposing.
+      placeholder: API proposal
+      value: |
+        ```csharp
+        namespace MyProject;
+
+        public class MyClass<T>
+        {
+            public void Foo(T item);
+        }
+        ```
+    validations:
+      required: true
+
+  - type: textarea
+    id: usage
+    attributes:
+      label: Usage Example
+      description: >
+        Show code examples of how your proposed feature would be used.
+        This helps us assess if the API is functional and intuitive.
+      placeholder: Usage example
+      value: |
+        ```csharp
+        var c = new MyClass<int>();
+        c.Foo(42);
+        ```
+    validations:
+      required: true
+
+  - type: textarea
+    id: alternatives
+    attributes:
+      label: Alternative Solutions
+      description: >
+        Describe any alternative solutions or workarounds you've considered.
+        Could the feature be implemented differently?
+      placeholder: Alternative solutions
+    validations:
+      required: false
+
+  - type: textarea
+    id: risks
+    attributes:
+      label: Risks
+      description: >
+        Mention any potential risks with this proposal,
+        such as breaking changes or performance impacts.
+      placeholder: Risks
+    validations:
+      required: false
