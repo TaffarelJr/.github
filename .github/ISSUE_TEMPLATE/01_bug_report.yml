@@ -1,0 +1,70 @@
+name: 🪲 Bug report
+description: Create a report to help us improve
+title: "[BUG] "
+labels: [ bug ]
+assignees: [ TaffarelJr ]
+body:
+  - type: markdown
+    attributes:
+      value: Thanks for taking the time to file a bug report! 🤗
+
+  - type: checkboxes
+    id: new-bug
+    attributes:
+      label: Is there an existing issue for this?
+      description: Please search to see if an issue already exists for the bug you encountered.
+      options:
+      - label: I have searched the existing issues
+        required: true
+
+  - type: textarea
+    id: bug-description
+    attributes:
+      label: Description of the bug
+      description: Please give a clear and concise description of what the bug is.
+    validations:
+      required: true
+
+  - type: textarea
+    id: steps-to-reproduce
+    attributes:
+      label: Steps to reproduce
+      description: Please identify the steps to reproduce the behavior.
+      placeholder: |
+        1. Go to '...'
+        2. Click on '...'
+        3. Scroll down to '...'
+        4. See error
+    validations:
+      required: true
+
+  - type: textarea
+    id: expected-behavior
+    attributes:
+      label: Expected behavior
+      description: Please give a clear and concise description of what you expected to happen.
+    validations:
+      required: true
+
+  - type: textarea
+    id: configuration
+    attributes:
+      label: Configuration
+      description: |
+        Please provide more information on the environment where the bug occurred:
+          * Which version of this package are you using?
+          * Which version of .NET is your code running on?
+          * What OS and version, and what distro if applicable?
+          * What is the architecture (x64, x86, ARM, ARM64)?
+          * Do you know whether it is specific to that configuration?
+          * Which web browser(s) do you see this issue in?
+      placeholder: Configuration
+    validations:
+      required: false
+
+  - type: textarea
+    id: additional-information
+    attributes:
+      label: Additional Information
+      description: |
+        Provide any additional information such as logs, screenshots, context, ideas, etc.
