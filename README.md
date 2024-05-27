@@ -70,6 +70,12 @@ flowchart TB
   T2 --> R4
 ```
 
+#### Table of Contents <!-- omit from toc -->
+
+- [Description of Files in This Template Repo](#description-of-files-in-this-template-repo)
+  - [GitHub Templates](#github-templates)
+  - [Other Files](#other-files)
+
 ## Description of Files in This Template Repo
 
 Derived repositories automatically inherit certain files from this template
@@ -78,6 +84,17 @@ However, files that require repo-specific customization
 (such as those containing links to documentation, issues, discussions, etc.,
 or those that need to be linked to from other documents)
 must be overridden and customized in each derived repository.
+
+### [GitHub Templates][ghTemplates]
+
+| Template                                     | Exists only in</br>.github repo | Overridden in<br/>template repo | Notes           |
+| :------------------------------------------- | :-----------------------------: | :-----------------------------: | :-------------- |
+| 📁Discussion category forms                  |                —                |                —                | Not implemented |
+| 📁[Issue templates][issueTemplateFolder]     |                                 |               ✅                | Customizable    |
+| 📄[Issue template chooser][issueChooserFile] |               ✅                |                                 |                 |
+| 📄[Pull request template][prTemplateFile]    |                                 |               ✅                | Customizable    |
+
+### Other Files
 
 | File                                  | Exists only in</br>.github repo | Overridden in<br/>template repo | Description                                               |
 | :------------------------------------ | :-----------------------------: | :-----------------------------: | :-------------------------------------------------------- |
@@ -90,6 +107,9 @@ must be overridden and customized in each derived repository.
 
 <!-- Source Code URIs (alphabetical by file hierarchy) -->
 
+[issueTemplateFolder]: ./.github/ISSUE_TEMPLATE/
+[issueChooserFile]: ./.github/ISSUE_TEMPLATE/config.yml
+[prTemplateFile]: ./.github/pull_request_template.md
 [vsCodeFolder]: ./.vscode/
 [docsFolder]: ./docs/
 [styleguideFile]: ./docs/StyleGuides.md
