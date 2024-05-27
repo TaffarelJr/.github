@@ -73,6 +73,7 @@ flowchart TB
 #### Table of Contents <!-- omit from toc -->
 
 - [Description of Files in This Template Repo](#description-of-files-in-this-template-repo)
+  - [Community Health Files](#community-health-files)
   - [GitHub Templates](#github-templates)
   - [Other Files](#other-files)
 
@@ -82,6 +83,19 @@ While GitHub automatically inherits some files from this `.github` repo,
 others must be copied to derived repos to allow customization.
 Files that contain repo-specific links (to documentation, issues, discussions, etc.)
 need to be overridden in each derived repo so the URLs point to the correct location.
+
+### [Community Health Files][health]
+
+| File                           | Exists only</br>in this repo | Overridden in<br/>derived repos | Notes           |
+| :----------------------------- | :--------------------------: | :-----------------------------: | :-------------- |
+| 📄[`CODE_OF_CONDUCT.md`][coc]  |              ✅              |                                 |                 |
+| 📄[`CODEOWNERS`][codeOwners]   |             N/A              |               ✅                |                 |
+| 📄[`CONTRIBUTING.md`][contrib] |                              |               ✅                |                 |
+| 📄[`FUNDING.yml`][funding]     |              ✅              |                                 |                 |
+| 📄`GOVERNANCE.md`              |              —               |                —                | Not implemented |
+| 📄[`LICENSE`][license]         |             N/A              |               ✅                |                 |
+| 📄[`SECURITY.md`][security]    |                              |               ✅                |                 |
+| 📄[`SUPPORT.md`][support]      |                              |               ✅                |                 |
 
 ### [GitHub Templates][templates]
 
@@ -104,13 +118,20 @@ need to be overridden in each derived repo so the URLs point to the correct loca
 <!-- Source Code URIs -->
 
 [chooser]: ./.github/ISSUE_TEMPLATE/config.yml
+[coc]: ./CODE_OF_CONDUCT.md
+[codeOwners]: ./.github/CODEOWNERS
+[contrib]: ./CONTRIBUTING.md
 [docs]: ./docs/
 [editorConfig]: ./.editorconfig
+[funding]: ./.github/FUNDING.yml
 [issues]: ./.github/ISSUE_TEMPLATE/
+[license]: ./LICENSE
 [message]: ./.gitmessage
 [messageGuide]: ./docs/StyleGuides.md#commit-messages
 [prs]: ./.github/pull_request_template.md
+[security]: ./SECURITY.md
 [styleGuides]: ./docs/StyleGuides.md
+[support]: ./SUPPORT.md
 [vsCode]: ./.vscode/
 
 <!-- Public URIs -->
