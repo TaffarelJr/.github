@@ -1,0 +1,127 @@
+name: ✨ New Feature
+description: Suggest a completely new capability or functionality
+title: "[FEATURE] "
+labels: [new feature]
+assignees: [TaffarelJr]
+body:
+  - type: markdown
+    attributes:
+      value: >
+        Thanks for helping us add more value! 🤗 See
+        [CONTRIBUTING.md](https://github.com/TaffarelJr/.github/blob/main/CONTRIBUTING.md#how-do-i-submit-a-good-enhancement-suggestion)
+        for tips on writing an effective feature request.
+
+  - type: checkboxes
+    id: prerequisites
+    attributes:
+      label: ✅ Prerequisites
+      description: >
+        Please check these boxes before submitting a new feature request:
+      options:
+        - label: >
+            I've searched the
+            [documentation](https://github.com/TaffarelJr/.github/tree/main/docs)
+            and [Wiki](https://github.com/TaffarelJr/.github/wiki),
+            and I'm sure this feature doesn't currently exist.
+          required: true
+        - label: >
+            I've searched (or posted in) the
+            [Discussions](https://github.com/TaffarelJr/.github/discussions)
+            about this feature.
+          required: true
+        - label: >
+            The feature is appropriate and in-line with the goals of this project,
+            and will benefit the majority of users.
+          required: true
+        - label: >
+            I've searched the existing
+            [Issues](https://github.com/TaffarelJr/.github/issues)
+            and this feature has not been suggested yet.
+          required: true
+
+  - type: textarea
+    id: problem
+    attributes:
+      label: ❓ Problem Statement
+      description: >
+        Describe the problem or need that this feature would address:
+      placeholder: What problem does this feature solve?
+    validations:
+      required: true
+
+  - type: textarea
+    id: description
+    attributes:
+      label: 📝 Feature Description
+      description: >
+        Describe the feature and how it would work:
+      placeholder: How would this feature work?
+    validations:
+      required: true
+
+  - type: textarea
+    id: proposal
+    attributes:
+      label: 💡 API Proposal
+      description: >
+        Provide the specific API signature you're proposing:
+      placeholder: Proposed API signature
+      value: |
+        ```csharp
+        namespace MyProject;
+
+        public class MyClass<T>
+        {
+            public void Foo(T item);
+        }
+        ```
+    validations:
+      required: true
+
+  - type: textarea
+    id: usage
+    attributes:
+      label: 📋 Usage Example
+      description: >
+        Show code examples of how your proposed feature would be used:
+      placeholder: Code examples showing usage
+      value: |
+        ```csharp
+        var c = new MyClass<int>();
+        c.Foo(42);
+        ```
+    validations:
+      required: true
+
+  - type: textarea
+    id: alternatives
+    attributes:
+      label: 🔀 Alternative Solutions
+      description: >
+        Describe any alternative solutions or workarounds you've considered
+        (existing libraries, manual processes, etc.):
+      placeholder: What alternatives have you considered?
+    validations:
+      required: false
+
+  - type: textarea
+    id: risks
+    attributes:
+      label: ⚠️ Risks
+      description: >
+        Mention any potential risks
+        (breaking changes, performance impacts, etc.):
+      placeholder: What risks should we be aware of?
+    validations:
+      required: false
+
+  - type: textarea
+    id: additional-info
+    attributes:
+      label: ➕ Additional Context
+      description: >
+        Add any other context about the feature here
+        (implementation ideas, references, related issues, etc.):
+      placeholder: Anything else we should know?
+    validations:
+      required: false

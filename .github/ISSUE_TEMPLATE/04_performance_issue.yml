@@ -1,0 +1,111 @@
+name: ⏱️ Performance issue
+description: Report a performance problem or regression
+title: "[PERFORMANCE] "
+labels: [performance]
+assignees: [TaffarelJr]
+body:
+  - type: markdown
+    attributes:
+      value: >
+        Thanks for helping us make our code faster! 🤗 See
+        [CONTRIBUTING.md](https://github.com/TaffarelJr/.github/blob/main/CONTRIBUTING.md#how-do-i-submit-a-good-bug-report)
+        for tips on writing an effective performance issue.
+
+  - type: checkboxes
+    id: prerequisites
+    attributes:
+      label: ✅ Prerequisites
+      description: >
+        Please check these boxes before submitting a new performance issue:
+      options:
+        - label: >
+            I've searched the
+            [documentation](https://github.com/TaffarelJr/.github/tree/main/docs)
+            and [Wiki](https://github.com/TaffarelJr/.github/wiki),
+            and I'm sure it's not performing the way it should.
+          required: true
+        - label: >
+            I've searched (or posted in) the
+            [Discussions](https://github.com/TaffarelJr/.github/discussions)
+            about this performance issue.
+          required: true
+        - label: >
+            I've searched the existing
+            [Issues](https://github.com/TaffarelJr/.github/issues)
+            and this performance issue has not been reported yet.
+          required: true
+
+  - type: textarea
+    id: description
+    attributes:
+      label: 📝 Description
+      description: >
+        Give a clear and concise description of the performance issue:
+      placeholder: What's the performance issue?
+    validations:
+      required: true
+
+  - type: textarea
+    id: repro
+    attributes:
+      label: 🔁 Steps to Reproduce
+      description: >
+        Include minimal steps to reproduce the performance issue:
+      placeholder: What are the steps to reproduce?
+      value: |
+        1.
+        2.
+        3.
+    validations:
+      required: true
+
+  - type: textarea
+    id: data
+    attributes:
+      label: 📊 Relevant Data
+      description: >
+        Include benchmarks, graphs, timings, or measurements
+        (include text descriptions to help with searching):
+      placeholder: Performance measurements and benchmarks
+    validations:
+      required: false
+
+  - type: textarea
+    id: screenshots
+    attributes:
+      label: 📸 Screenshots
+      description: >
+        Add screenshots to help illustrate the performance issue, if applicable
+        (include text descriptions to help with searching):
+      placeholder: Screenshots or visual aids
+    validations:
+      required: false
+
+  - type: textarea
+    id: environment
+    attributes:
+      label: 💻 Environment
+      description: >
+        Describe the environment in which the performance issue occurred:
+      placeholder: Environment details
+      value: |
+        - Hardware: [e.g. 8-core CPU, 16GB RAM]
+        - Architecture: [e.g. x86, x64, ARM64]
+        - OS: [e.g. Windows 11, macOS 15, iOS 18]
+        - Browser: [e.g. Chrome, Safari]
+        - Platform: [e.g. .NET 9, Node.js 22]
+        - Dependency: [e.g. morelinq 4.0.0, eslint 9.20.0]
+        - Project version: [e.g. 1.2.3]
+    validations:
+      required: false
+
+  - type: textarea
+    id: additional-info
+    attributes:
+      label: ➕ Additional Context
+      description: >
+        Add any other context about the performance issue here
+        (insights, potential causes, relevant code, related issues, etc.):
+      placeholder: Anything else we should know?
+    validations:
+      required: false

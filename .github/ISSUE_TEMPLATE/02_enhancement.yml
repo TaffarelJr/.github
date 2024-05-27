@@ -1,0 +1,143 @@
+name: 🚀 Enhancement
+description: Suggest an improvement to an existing feature
+title: "[ENHANCEMENT] "
+labels: [enhancement]
+assignees: [TaffarelJr]
+body:
+  - type: markdown
+    attributes:
+      value: >
+        Thanks for helping us improve! 🤗 See
+        [CONTRIBUTING.md](https://github.com/TaffarelJr/.github/blob/main/CONTRIBUTING.md#how-do-i-submit-a-good-enhancement-suggestion)
+        for tips on writing an effective enhancement suggestion.
+
+  - type: checkboxes
+    id: prerequisites
+    attributes:
+      label: ✅ Prerequisites
+      description: >
+        Please check these boxes before submitting a new enhancement suggestion:
+      options:
+        - label: >
+            I've searched the
+            [documentation](https://github.com/TaffarelJr/.github/tree/main/docs)
+            and [Wiki](https://github.com/TaffarelJr/.github/wiki),
+            and I'm sure this enhancement doesn't currently exist.
+          required: true
+        - label: >
+            I've searched (or posted in) the
+            [Discussions](https://github.com/TaffarelJr/.github/discussions)
+            about this enhancement.
+          required: true
+        - label: >
+            The enhancement is appropriate and in-line with the goals of this project,
+            and will benefit the majority of users.
+          required: true
+        - label: >
+            I've searched the existing
+            [Issues](https://github.com/TaffarelJr/.github/issues)
+            and this enhancement has not been suggested yet.
+          required: true
+
+  - type: textarea
+    id: existing_feature
+    attributes:
+      label: 🔧 Existing Feature
+      description: >
+        Describe the current feature or functionality that you want to enhance:
+      placeholder: Existing code to be enhanced
+      value: |
+        ```csharp
+        public class ExistingClass
+        {
+            public void CurrentMethod();
+        }
+        ```
+    validations:
+      required: true
+
+  - type: textarea
+    id: limitation
+    attributes:
+      label: 🚧 Current Limitation
+      description: >
+        Explain what's limiting or missing in the current implementation:
+      placeholder: What's the limitation?
+    validations:
+      required: true
+
+  - type: textarea
+    id: proposal
+    attributes:
+      label: 💡 Enhancement Proposal
+      description: >
+        Describe how you'd like to enhance the existing feature:
+      placeholder: Proposed enhancement
+      value: |
+        ```csharp
+        public class ExistingClass
+        {
+            public void CurrentMethod();
+            public void EnhancedMethod(int parameter);
+        }
+        ```
+    validations:
+      required: true
+
+  - type: textarea
+    id: usage
+    attributes:
+      label: 📋 Usage Example
+      description: >
+        Show code examples of how your proposed enhancement would be used:
+      placeholder: Code examples showing usage
+      value: |
+        ```csharp
+        var obj = new ExistingClass();
+        obj.EnhancedMethod(42);
+        ```
+    validations:
+      required: true
+
+  - type: textarea
+    id: alternatives
+    attributes:
+      label: 🔀 Alternative Solutions
+      description: >
+        Describe any alternative solutions or workarounds you've considered
+        (existing libraries, manual processes, etc.):
+      placeholder: What alternatives have you considered?
+    validations:
+      required: false
+
+  - type: textarea
+    id: compatibility
+    attributes:
+      label: 🔄 Backward Compatibility
+      description: >
+        Describe any backward compatibility considerations or breaking changes:
+      placeholder: Are there any breaking changes?
+    validations:
+      required: false
+
+  - type: textarea
+    id: risks
+    attributes:
+      label: ⚠️ Risks
+      description: >
+        Mention any other potential risks
+        (performance impacts, security concerns, increased complexity, etc.):
+      placeholder: What other risks should we be aware of?
+    validations:
+      required: false
+
+  - type: textarea
+    id: additional-info
+    attributes:
+      label: ➕ Additional Context
+      description: >
+        Add any other context about the enhancement here
+        (implementation ideas, references, related issues, etc.):
+      placeholder: Anything else we should know?
+    validations:
+      required: false
