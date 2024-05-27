@@ -1,0 +1,140 @@
+name: 🚀 Enhancement
+description: Suggest an improvement to an existing feature
+assignees: [TaffarelJr]
+labels: [enhancement]
+body:
+  - type: markdown
+    attributes:
+      value: >
+        Thanks for helping us improve! 🤗 See the
+        [`CONTRIBUTING.md`](https://github.com/TaffarelJr/.github/blob/main/CONTRIBUTING.md#how-do-i-submit-a-good-enhancement-suggestion)
+        file for tips on writing an effective enhancement suggestion.
+
+  - type: checkboxes
+    id: prerequisites
+    attributes:
+      label: Prerequisites
+      description: >
+        Please check these boxes before submitting a new enhancement suggestion.
+      options:
+        - label: >
+            I've searched the
+            [Documentation](https://github.com/TaffarelJr/.github/tree/main/docs)
+            and [Wiki](https://github.com/TaffarelJr/.github/wiki)
+            for information on this topic,
+            and I'm sure this enhancement doesn't currently exist.
+          required: true
+        - label: >
+            I've searched and/or posted in the
+            [Discussions](https://github.com/TaffarelJr/.github/discussions)
+            about this enhancement.
+          required: true
+        - label: >
+            The enhancement is appropriate
+            and in-line with the goals of this project,
+            and will benefit the majority of users.
+          required: true
+        - label: >
+            I've searched the existing
+            [Issues](https://github.com/TaffarelJr/.github/issues)
+            and this enhancement has not been suggested yet.
+          required: true
+
+  - type: textarea
+    id: existing_feature
+    attributes:
+      label: Existing Feature
+      description: >
+        Describe the current feature or functionality that you want to enhance.
+        Include relevant API signatures or code examples.
+      placeholder: What currently exists?
+      value: |
+        ```csharp
+        // Current implementation
+        public class ExistingClass
+        {
+            public void CurrentMethod();
+        }
+        ```
+    validations:
+      required: true
+
+  - type: textarea
+    id: limitation
+    attributes:
+      label: Current Limitation
+      description: >
+        Explain what's limiting or missing in the current implementation.
+        What doesn't work as well as it could?
+      placeholder: What's the limitation?
+    validations:
+      required: true
+
+  - type: textarea
+    id: proposal
+    attributes:
+      label: Enhancement Proposal
+      description: >
+        Describe how you'd like to enhance the existing feature.
+        Provide the specific API changes you're proposing.
+      placeholder: Enhancement proposal
+      value: |
+        ```csharp
+        // Proposed enhancement
+        public class ExistingClass
+        {
+            public void CurrentMethod();
+            public void EnhancedMethod(int parameter);
+        }
+        ```
+    validations:
+      required: true
+
+  - type: textarea
+    id: usage
+    attributes:
+      label: Usage Example
+      description: >
+        Show code examples of how your proposed enhancement would be used.
+        This helps us assess if the change is functional and intuitive.
+      placeholder: Usage example
+      value: |
+        ```csharp
+        var obj = new ExistingClass();
+        obj.EnhancedMethod(42);
+        ```
+    validations:
+      required: true
+
+  - type: textarea
+    id: alternatives
+    attributes:
+      label: Alternative Solutions
+      description: >
+        Describe any alternative solutions or workarounds you've considered.
+        Could the enhancement be implemented differently?
+      placeholder: Alternative solutions
+    validations:
+      required: false
+
+  - type: textarea
+    id: compatibility
+    attributes:
+      label: Backward Compatibility
+      description: >
+        How would this enhancement affect existing code?
+        Would it introduce breaking changes?
+      placeholder: Compatibility considerations
+    validations:
+      required: false
+
+  - type: textarea
+    id: risks
+    attributes:
+      label: Risks
+      description: >
+        Mention any potential risks with this proposal,
+        such as breaking changes or performance impacts.
+      placeholder: Risks
+    validations:
+      required: false

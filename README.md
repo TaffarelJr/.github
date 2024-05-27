@@ -70,12 +70,29 @@ flowchart TB
   T2 --> R4
 ```
 
+#### Table of Contents <!-- omit from toc -->
+
+- [Description of Files in This Template Repo](#description-of-files-in-this-template-repo)
+  - [GitHub Templates](#github-templates)
+  - [Other Files](#other-files)
+
 ## Description of Files in This Template Repo
 
 While GitHub automatically inherits some files from this `.github` repo,
 others must be copied to derived repos to allow customization.
 Files that contain repo-specific links (to documentation, issues, discussions, etc.)
 need to be overridden in each derived repo so the URLs point to the correct location.
+
+### [GitHub Templates][templates]
+
+| Template                            | Exists only</br>in this repo | Overridden in<br/>derived repos | Notes           |
+| :---------------------------------- | :--------------------------: | :-----------------------------: | :-------------- |
+| 📁Discussion category forms         |              —               |                —                | Not implemented |
+| 📁[Issue templates][issues]         |                              |               ✅                |                 |
+| 📄[Issue template chooser][chooser] |              ✅              |                                 |                 |
+| 📄[Pull request template][prs]      |                              |               ✅                |                 |
+
+### Other Files
 
 | File                              | Exists only<br/>in this repo | Overridden in<br/>derived repos | Purpose                                     |
 | :-------------------------------- | :--------------------------: | :-----------------------------: | :------------------------------------------ |
@@ -86,10 +103,13 @@ need to be overridden in each derived repo so the URLs point to the correct loca
 
 <!-- Source Code URIs -->
 
+[chooser]: ./.github/ISSUE_TEMPLATE/config.yml
 [docs]: ./docs/
 [editorConfig]: ./.editorconfig
+[issues]: ./.github/ISSUE_TEMPLATE/
 [message]: ./.gitmessage
 [messageGuide]: ./docs/StyleGuides.md#commit-messages
+[prs]: ./.github/pull_request_template.md
 [styleGuides]: ./docs/StyleGuides.md
 [vsCode]: ./.vscode/
 
