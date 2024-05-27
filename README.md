@@ -73,6 +73,7 @@ flowchart TB
 #### Table of Contents <!-- omit from toc -->
 
 - [Description of Files in This Template Repo](#description-of-files-in-this-template-repo)
+  - [Community Health Files](#community-health-files)
   - [GitHub Templates](#github-templates)
   - [Other Files](#other-files)
 
@@ -83,6 +84,19 @@ through GitHub's default file mechanism.
 However, files that require repo-specific customization
 (such as those containing links to documentation, issues, discussions, etc.)
 must be overridden and customized in each derived repository.
+
+### [Community Health Files][ghComHealth]
+
+| File                             | Exists only in</br>.github repo | Overridden in<br/>template repo | Notes           |
+| :------------------------------- | :-----------------------------: | :-----------------------------: | :-------------- |
+| 📄[CODE_OF_CONDUCT.md][cocFile]  |               ✅                |                                 |                 |
+| 📄[CODEOWNERS][codeOwnFile]      |               N/A               |               ✅                |                 |
+| 📄[CONTRIBUTING.md][contribFile] |                                 |               ✅                |                 |
+| 📄[FUNDING.yml][fundingFile]     |               ✅                |                                 |                 |
+| 📄GOVERNANCE.md                  |                —                |                —                | Not implemented |
+| 📄[LICENSE][licenseFile]         |               N/A               |               ✅                |                 |
+| 📄[SECURITY.md][securityFile]    |                                 |               ✅                |                 |
+| 📄[SUPPORT.md][supportFile]      |                                 |               ✅                |                 |
 
 ### [GitHub Templates][ghTemplates]
 
@@ -108,6 +122,8 @@ must be overridden and customized in each derived repository.
 
 [issueTemplateFolder]: ./.github/ISSUE_TEMPLATE/
 [issueChooserFile]: ./.github/ISSUE_TEMPLATE/config.yml
+[codeOwnFile]: ./.github/CODEOWNERS
+[fundingFile]: ./.github/FUNDING.yml
 [prTemplateFile]: ./.github/pull_request_template.md
 [vsCodeFolder]: ./.vscode/
 [docsFolder]: ./docs/
@@ -117,6 +133,11 @@ must be overridden and customized in each derived repository.
 [gitAttributesFile]: ./.gitattributes
 [gitIgnoreFile]: ./.gitignore
 [gitMessageFile]: ./.gitmessage
+[cocFile]: ./CODE_OF_CONDUCT.md
+[contribFile]: ./CONTRIBUTING.md
+[licenseFile]: ./LICENSE
+[securityFile]: ./SECURITY.md
+[supportFile]: ./SUPPORT.md
 
 <!-- GitHub Repo URIs (alphabetical by name) -->
 
