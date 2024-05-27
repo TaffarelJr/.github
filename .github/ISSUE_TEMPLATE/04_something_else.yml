@@ -1,0 +1,32 @@
+name: ⏱️ Something else
+description: Report something that doesn't fit the other categories
+title: "[OTHER] "
+assignees: [ TaffarelJr ]
+body:
+  - type: markdown
+    attributes:
+      value: Thanks for taking the time to file an issue! 🤗
+
+  - type: checkboxes
+    id: new-issue
+    attributes:
+      label: Is there an existing issue for this?
+      description: Please search to see if an issue already exists for the issue you encountered.
+      options:
+      - label: I have searched the existing issues
+        required: true
+
+  - type: textarea
+    id: issue-description
+    attributes:
+      label: Describe the issue
+      description: Please give a clear and concise description of the issue.
+    validations:
+      required: true
+
+  - type: textarea
+    id: additional-information
+    attributes:
+      label: Additional Information
+      description: |
+        Provide any additional information such as screenshots, context, ideas, etc.
