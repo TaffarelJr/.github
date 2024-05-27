@@ -70,7 +70,26 @@ flowchart TB
   T2 --> R4
 ```
 
+#### Table of Contents <!-- omit from toc -->
+
+- [Description of Files in This Template Repo](#description-of-files-in-this-template-repo)
+  - [Community Health Files](#community-health-files)
+  - [Other Files](#other-files)
+
 ## Description of Files in This Template Repo
+
+### [Community Health Files][health]
+
+| File                         | Exists only</br>in this repo | Synced to<br/>(and overridden in)<br/>derived repos | Notes      |
+| :--------------------------- | :--------------------------: | :-------------------------------------------------: | :--------- |
+| [`CODE_OF_CONDUCT.md`][coc]  |              ✅              |                                                     |            |
+| [`CONTRIBUTING.md`][contrib] |                              |                         ✅                          |            |
+| [`FUNDING.yml`][funding]     |              ✅              |                                                     |            |
+| `GOVERNANCE.md`              |                              |                                                     | Not needed |
+| [`SECURITY.md`][security]    |                              |                         ✅                          |            |
+| [`SUPPORT.md`][support]      |                              |                         ✅                          |            |
+
+### Other Files
 
 | File                            | Exists only</br>in this repo | Synced to<br/>(and overridden in)<br/>derived repos | Purpose                                     |
 | :------------------------------ | :--------------------------: | :-------------------------------------------------: | :------------------------------------------ |
@@ -80,11 +99,16 @@ flowchart TB
 
 <!-- Source Code URIs -->
 
+[coc]: ./CODE_OF_CONDUCT.md
+[contrib]: ./CONTRIBUTING.md
 [docs]: ./docs/
 [editorConfig]: ./.editorconfig
+[funding]: ./.github/FUNDING.yml
 [message]: ./.gitmessage
 [messageGuide]: ./docs/StyleGuides.md#commit-messages
+[security]: ./SECURITY.md
 [styleGuides]: ./docs/StyleGuides.md
+[support]: ./SUPPORT.md
 
 <!-- Public URIs -->
 
