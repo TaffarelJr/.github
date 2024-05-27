@@ -1,0 +1,41 @@
+name: ✨ Feature request
+description: Suggest an idea for this project
+title: "[FEAT] "
+labels: [ enhancement ]
+assignees: [ TaffarelJr ]
+body:
+  - type: markdown
+    attributes:
+      value: Thanks for taking the time to suggest an improvement! 🤗
+
+  - type: checkboxes
+    id: new-feature
+    attributes:
+      label: Is there an existing issue for this?
+      description: Please search to see if an issue already exists for the feature you're requesting.
+      options:
+      - label: I have searched the existing issues
+        required: true
+
+  - type: textarea
+    id: feature-description
+    attributes:
+      label: Describe the solution you'd like
+      description: Please give a clear and concise description of what you want to happen.
+    validations:
+      required: true
+
+  - type: textarea
+    id: feature-alternatives
+    attributes:
+      label: Describe alternatives you've considered
+      description: Please give a clear and concise description of any alternative solutions or features you've considered.
+    validations:
+      required: true
+
+  - type: textarea
+    id: additional-information
+    attributes:
+      label: Additional Information
+      description: |
+        Provide any additional information such as screenshots, context, ideas, etc.
