@@ -1,44 +1,103 @@
 name: ⏱️ Performance issue
-description: Report a performance issue
-title: "[PERF] "
-labels: [ performance ]
-assignees: [ TaffarelJr ]
+description: Report a performance problem or regression
+assignees: [TaffarelJr]
+labels: [performance]
 body:
   - type: markdown
     attributes:
-      value: Thanks for taking the time to file a performance issue! 🤗
+      value: >
+        Thanks for taking the time to help us make our code better! 🤗
+        Please see
+        [`CONTRIBUTING.md`](https://github.com/TaffarelJr/.github/blob/main/CONTRIBUTING.md#how-do-i-submit-a-good-bug-report)
+        for more information on writing a good performance issue.
 
   - type: checkboxes
-    id: new-performance
+    id: prerequisites
     attributes:
-      label: Is there an existing issue for this?
-      description: Please search to see if an issue already exists for the performance issue you encountered.
+      label: Prerequisites
+      description: >
+        Please make sure these options have been tried
+        before submitting a new problem.
       options:
-      - label: I have searched the existing issues
-        required: true
+        - label: >
+            I've searched the
+            [Documentation](https://github.com/TaffarelJr/.github/tree/main/docs)
+            and [Wiki](https://github.com/TaffarelJr/.github/wiki)
+            for information on this topic,
+            and I'm sure it's not performing the way it should.
+          required: true
+        - label: >
+            I've searched and/or posted in the
+            [Discussions](https://github.com/TaffarelJr/.github/discussions)
+            about this problem.
+          required: true
+        - label: >
+            I've searched the existing
+            [Issues](https://github.com/TaffarelJr/.github/issues)
+            and this problem has not been reported yet.
+          required: true
 
   - type: textarea
-    id: performance-description
+    id: description
     attributes:
-      label: Describe the solution you'd like
-      description: Please give a clear and concise description of the performance issue.
+      label: Description
+      description: Please give a clear and concise description of the problem.
+      placeholder: Description
     validations:
       required: true
 
   - type: textarea
-    id: performance-data
+    id: repro-steps
     attributes:
-      label: Add relevant data
-      description: |
-        Please include any benchmarks, graphs, timings, measurements, or callstacks that are relevant.
-          * If possible please include text as text rather than images (so it shows up in searches).
-          * If applicable please include before and after measurements.
+      label: Reproduction Steps
+      description: >
+        Please include minimal steps to reproduce the problem if possible.
+        E.g.: the smallest possible code snippet;
+        or a small project, with steps to run it.
+        If possible, include text rather than images
+        (so it shows up in searches).
+      placeholder: Minimal reproduction steps
+    validations:
+      required: true
+
+  - type: textarea
+    id: data
+    attributes:
+      label: Relevant Data
+      description: >
+        Please include any benchmarks, graphs, timings, measurements,
+        or callstacks that are relevant.
+        If possible, include text rather than images
+        (so it shows up in searches).
+        If applicable, include both `before` and `after` measurements.
+      placeholder: Relevant data
     validations:
       required: false
 
   - type: textarea
-    id: additional-information
+    id: configuration
+    attributes:
+      label: Configuration
+      description: |
+        Please provide more information on the environment where the problem occurred:
+        - Which version of this package are you using?
+        - Which version of .NET is the code running on?
+        - What OS and version, and what distro if applicable?
+        - What is the architecture (x86, x64, ARM, ARM64)?
+        - Do you know whether it's specific to that configuration?
+        - Which web browser(s) do you see the bug in?
+        - If relevant, what are the specs of the machine?
+      placeholder: Configuration details
+    validations:
+      required: false
+
+  - type: textarea
+    id: additional-info
     attributes:
       label: Additional Information
-      description: |
-        Provide any additional information such as screenshots, context, ideas, etc.
+      description: >
+        If you have an idea where the problem might lie, let us know here.
+        Please include any relevant code, changes, or related issues you know of.
+      placeholder: Additional information
+    validations:
+      required: false

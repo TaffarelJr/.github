@@ -1,48 +1,88 @@
 name: 🪲 Bug report
-description: Create a report to help us improve
-title: "[BUG] "
-labels: [ bug ]
-assignees: [ TaffarelJr ]
+description: Report something that's not working as expected
+assignees: [TaffarelJr]
+labels: [bug]
 body:
   - type: markdown
     attributes:
-      value: Thanks for taking the time to file a bug report! 🤗
+      value: >
+        Thanks for taking the time to help us fix something that's broken! 🤗
+        Please see
+        [`CONTRIBUTING.md`](https://github.com/TaffarelJr/.github/blob/main/CONTRIBUTING.md#how-do-i-submit-a-good-bug-report)
+        for more information on writing a good bug report.
 
   - type: checkboxes
-    id: new-bug
+    id: prerequisites
     attributes:
-      label: Is there an existing issue for this?
-      description: Please search to see if an issue already exists for the bug you encountered.
+      label: Prerequisites
+      description: >
+        Please make sure these options have been tried
+        before submitting a new bug.
       options:
-      - label: I have searched the existing issues
-        required: true
+        - label: >
+            I've searched the
+            [Documentation](https://github.com/TaffarelJr/.github/tree/main/docs)
+            and [Wiki](https://github.com/TaffarelJr/.github/wiki)
+            for information on this topic,
+            and I'm sure it's a bug.
+          required: true
+        - label: >
+            I've searched and/or posted in the
+            [Discussions](https://github.com/TaffarelJr/.github/discussions)
+            about this bug.
+          required: true
+        - label: >
+            I've searched the existing
+            [Issues](https://github.com/TaffarelJr/.github/issues)
+            and this bug has not been reported yet.
+          required: true
 
   - type: textarea
-    id: bug-description
+    id: description
     attributes:
-      label: Description of the bug
-      description: Please give a clear and concise description of what the bug is.
+      label: Description
+      description: Please give a clear and concise description of the bug.
+      placeholder: Description
     validations:
       required: true
 
   - type: textarea
-    id: steps-to-reproduce
+    id: repro-steps
     attributes:
-      label: Steps to reproduce
-      description: Please identify the steps to reproduce the behavior.
-      placeholder: |
-        1. Go to '...'
-        2. Click on '...'
-        3. Scroll down to '...'
-        4. See error
+      label: Reproduction Steps
+      description: >
+        Please include minimal steps to reproduce the bug if possible.
+        E.g.: the smallest possible code snippet;
+        or a small project, with steps to run it.
+        If possible, include text rather than images
+        (so it shows up in searches).
+      placeholder: Minimal reproduction steps
     validations:
       required: true
 
   - type: textarea
     id: expected-behavior
     attributes:
-      label: Expected behavior
-      description: Please give a clear and concise description of what you expected to happen.
+      label: Expected Behavior
+      description: >
+        Provide a description of the expected behavior.
+        If possible, include text rather than images
+        (so it shows up in searches).
+      placeholder: Expected behavior
+    validations:
+      required: true
+
+  - type: textarea
+    id: actual-behavior
+    attributes:
+      label: Actual Behavior
+      description: >
+        Provide a description of the actual behavior observed.
+        If applicable, please include any error messages, stacktraces,
+        or memory dumps.
+        If possible, include text rather than images
+        (so it shows up in searches).
+      placeholder: Actual behavior
     validations:
       required: true
 
@@ -52,19 +92,24 @@ body:
       label: Configuration
       description: |
         Please provide more information on the environment where the bug occurred:
-          * Which version of this package are you using?
-          * Which version of .NET is your code running on?
-          * What OS and version, and what distro if applicable?
-          * What is the architecture (x64, x86, ARM, ARM64)?
-          * Do you know whether it is specific to that configuration?
-          * Which web browser(s) do you see this issue in?
-      placeholder: Configuration
+        - Which version of this package are you using?
+        - Which version of .NET is the code running on?
+        - What OS and version, and what distro if applicable?
+        - What is the architecture (x86, x64, ARM, ARM64)?
+        - Do you know whether it's specific to that configuration?
+        - Which web browser(s) do you see the bug in?
+        - If relevant, what are the specs of the machine?
+      placeholder: Configuration details
     validations:
       required: false
 
   - type: textarea
-    id: additional-information
+    id: additional-info
     attributes:
       label: Additional Information
-      description: |
-        Provide any additional information such as logs, screenshots, context, ideas, etc.
+      description: >
+        If you have an idea where the problem might lie, let us know here.
+        Please include any relevant code, changes, or related issues you know of.
+      placeholder: Additional information
+    validations:
+      required: false

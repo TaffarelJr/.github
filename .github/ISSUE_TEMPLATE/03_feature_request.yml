@@ -1,41 +1,112 @@
 name: ✨ Feature request
-description: Suggest an idea for this project
-title: "[FEAT] "
-labels: [ enhancement ]
-assignees: [ TaffarelJr ]
+description: Suggest an idea or enhancement
+assignees: [TaffarelJr]
+labels: [enhancement]
 body:
   - type: markdown
     attributes:
-      value: Thanks for taking the time to suggest an improvement! 🤗
+      value: >
+        Thanks for taking the time to help us provide more value! 🤗
+        Please see
+        [`CONTRIBUTING.md`](https://github.com/TaffarelJr/.github/blob/main/CONTRIBUTING.md#how-do-i-submit-a-good-enhancement-suggestion)
+        for more information on writing a good enhancement suggestion.
 
   - type: checkboxes
-    id: new-feature
+    id: prerequisites
     attributes:
-      label: Is there an existing issue for this?
-      description: Please search to see if an issue already exists for the feature you're requesting.
+      label: Prerequisites
+      description: >
+        Please make sure these options have been tried
+        before submitting a new idea or enhancement suggestion.
       options:
-      - label: I have searched the existing issues
-        required: true
+        - label: >
+            I've searched the
+            [Documentation](https://github.com/TaffarelJr/.github/tree/main/docs)
+            and [Wiki](https://github.com/TaffarelJr/.github/wiki)
+            for information on this topic,
+            and I'm sure it's not currently available.
+          required: true
+        - label: >
+            I've searched and/or posted in the
+            [Discussions](https://github.com/TaffarelJr/.github/discussions)
+            about this enhancement.
+          required: true
+        - label: >
+            The enhancement is appropriate
+            and in-line with the goals of this project,
+            and will benefit the majority of users.
+          required: true
+        - label: >
+            I've searched the existing
+            [Issues](https://github.com/TaffarelJr/.github/issues)
+            and this enhancement has not been suggested yet.
+          required: true
 
   - type: textarea
-    id: feature-description
+    id: description
     attributes:
-      label: Describe the solution you'd like
-      description: Please give a clear and concise description of what you want to happen.
+      label: Description
+      description: Please describe the purpose and value of the enhancement.
+      placeholder: Description
     validations:
       required: true
 
   - type: textarea
-    id: feature-alternatives
+    id: proposal
     attributes:
-      label: Describe alternatives you've considered
-      description: Please give a clear and concise description of any alternative solutions or features you've considered.
+      label: API Proposal
+      description: Please provide the specific API signature you're proposing.
+      placeholder: API proposal
+      value: |
+        ```csharp
+        namespace MyProject;
+
+        public class MyClass<T>
+        {
+            public void Foo(T item);
+        }
+        ```
     validations:
       required: true
 
   - type: textarea
-    id: additional-information
+    id: usage
     attributes:
-      label: Additional Information
-      description: |
-        Provide any additional information such as screenshots, context, ideas, etc.
+      label: API Usage
+      description: >
+        Please provide code examples that demonstrate
+        how the proposed API changes are meant to be used.
+        This will help determine whether the API has the right "shape"
+        to be functional, performant, and usable.
+      placeholder: API usage
+      value: |
+        ```csharp
+        var c = new MyClass<int>();
+        c.Foo(42);
+        ```
+    validations:
+      required: true
+
+  - type: textarea
+    id: alternatives
+    attributes:
+      label: Alternative Designs
+      description: >
+        Please provide alternative designs, if applicable.
+        For example instead of providing new APIs,
+        an option might be to change the behavior of an existing API.
+      placeholder: Alternative designs
+    validations:
+      required: false
+
+  - type: textarea
+    id: risks
+    attributes:
+      label: Risks
+      description: >
+        Please mention any risks that the API proposal might entail
+        (to the best of your knowledge) -
+        such as breaking changes, performance regressions, etc.
+      placeholder: Risks
+    validations:
+      required: false
