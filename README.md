@@ -150,6 +150,8 @@ Checked files are stored in this repo.
   in the template sync GitHub Action.
   - Defined in this repo, synced (manually) other other repos.
   - Each repo must override the template repo to sync with.
+- `.github/settings.yml` — Defines the settings for the GitHub repository.
+  - Defined in this repo, [overridden in other repos][extends] as necessary.
 - `docs/` — Contains additional information about various topics
   that applies to all repos.
   - Files only exist in this repo.
@@ -176,3 +178,4 @@ Checked files are stored in this repo.
 [fcc]: https://www.freecodecamp.org/news/how-to-use-the-dot-github-repository
 [health]: https://docs.github.com/en/communities/setting-up-your-project-for-healthy-contributions/creating-a-default-community-health-file
 [sync]: https://github.com/AndreasAugustin/actions-template-sync
+[extends]: https://github.com/probot/octokit-plugin-config#the-_extends-key
