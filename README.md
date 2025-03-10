@@ -123,6 +123,7 @@ need to be overridden in each derived repo so the URLs point to the correct loca
 | 📄[`.gitmessage`][message]             |             N/A              |               ✅                | [Commit message template][messageGuide]     |
 | 📄[`copilot-instructions.md`][copilot] |             N/A              |               ✅                | [Copilot configuration][copilotDoc]         |
 | 📄[`dependabot.yml`][dependabot]       |             N/A              |               ✅                | [Dependabot configuration][dependabotDoc]   |
+| 📄[`settings.yml`][settings]           |             N/A              |               ✅                | [Repo configuration][settingsDoc]           |
 
 <!-- Source Code URIs -->
 
@@ -141,6 +142,7 @@ need to be overridden in each derived repo so the URLs point to the correct loca
 [messageGuide]: ./docs/StyleGuides.md#commit-messages
 [prs]: ./.github/pull_request_template.md
 [security]: ./SECURITY.md
+[settings]: ./.github/settings.yml
 [styleGuides]: ./docs/StyleGuides.md
 [support]: ./SUPPORT.md
 [sync]: ./.github/workflows/template-sync.yml
@@ -152,5 +154,6 @@ need to be overridden in each derived repo so the URLs point to the correct loca
 [dependabotDoc]: https://docs.github.com/en/code-security/dependabot/working-with-dependabot/dependabot-options-reference
 [freeCodeCamp]: https://www.freecodecamp.org/news/how-to-use-the-dot-github-repository
 [health]: https://docs.github.com/en/communities/setting-up-your-project-for-healthy-contributions/creating-a-default-community-health-file
+[settingsDoc]: https://github.com/repository-settings/app
 [templates]: https://docs.github.com/en/communities/using-templates-to-encourage-useful-issues-and-pull-requests/configuring-issue-templates-for-your-repository
 [workflows]: https://docs.github.com/en/actions/how-tos/writing-workflows
