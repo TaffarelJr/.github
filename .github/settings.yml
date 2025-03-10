@@ -1,0 +1,83 @@
+#───────────────────────────────────────────────────────────────────────────────
+# Settings -> General
+# https://github.com/repository-settings/app/blob/master/docs/plugins/repository.md
+# https://docs.github.com/en/rest/repos/repos?apiVersion=2022-11-28#update-a-repository
+#───────────────────────────────────────────────────────────────────────────────
+repository:
+
+  #──────────────────────────────────────────────────
+  # "About" section (on repo home page)
+
+  # A short description of the repository
+  description: >
+    Contains the default community health files, GitHub templates & workflows,
+    and any other files that are shared with my other repositories.
+
+  # A URL with more information about the repository
+  homepage: https://github.com/TaffarelJr
+
+  # A comma-separated list of topics to set on the repository
+  topics: github, github-config
+  #──────────────────────────────────────────────────
+
+  # The name of the repository
+  name: .github
+
+  # Whether the repository is available as a template
+  is_template: true
+
+  # Whether to require contributors to sign off on web-based commits
+  web_commit_signoff_required: true
+
+  # The default branch for the repository
+  default_branch: master
+
+  # Whether the wiki is enabled for this repository
+  has_wiki: true
+
+  # Whether issues are enabled for this repository
+  has_issues: true
+
+
+
+
+
+  # <later> ──────────────────────────────────────────────────
+
+  # The visibility of the repository (public, private)
+  visibility: public
+
+  # Whether projects are enabled for this repository
+  has_projects: true
+
+  # Whether downloads are enabled
+  has_downloads: true
+
+
+
+
+
+
+
+  # # Either `true` to allow squash-merging pull requests, or `false` to prevent
+  # # squash-merging.
+  # allow_squash_merge: true
+
+  # # Either `true` to allow merging pull requests with a merge commit, or `false`
+  # # to prevent merging pull requests with merge commits.
+  # allow_merge_commit: true
+
+  # # Either `true` to allow rebase-merging pull requests, or `false` to prevent
+  # # rebase-merging.
+  # allow_rebase_merge: true
+
+  # # Either `true` to enable automatic deletion of branches on merge, or `false` to disable
+  # delete_branch_on_merge: true
+
+  # # Either `true` to enable automated security fixes, or `false` to disable
+  # # automated security fixes.
+  # enable_automated_security_fixes: true
+
+  # # Either `true` to enable vulnerability alerts, or `false` to disable
+  # # vulnerability alerts.
+  # enable_vulnerability_alerts: true
