@@ -110,7 +110,8 @@ because most files need repo-specific customization.
 | &nbsp;│&nbsp;&nbsp;&nbsp;&nbsp;└─📄[config.yml][issueChooserFile] |               ✅                |                                 | [GitHub Issue template chooser][ghIssueChooser] |
 | &nbsp;├─📄[copilot-instructions.md][copilotFile]                  |               N/A               |               ✅                | [Copilot configuration][ghCopilot]              |
 | &nbsp;├─📄[dependabot.yml][dependabotFile]                        |               N/A               |               ✅                | [Dependabot configuration][ghDependabot]        |
-| &nbsp;└─📄[pull_request_template.md][prTemplateFile]              |                                 |               ✅                | [GitHub Pull Request template][ghPRTemplate]    |
+| &nbsp;├─📄[pull_request_template.md][prTemplateFile]              |                                 |               ✅                | [GitHub Pull Request template][ghPRTemplate]    |
+| &nbsp;└─📄[settings.yml][settingsFile]                            |               N/A               |               ✅                | [Repo configuration][ghSettings]                |
 
 ### [GitHub Workflows][ghWorkflows]
 
@@ -143,6 +144,7 @@ because most files need repo-specific customization.
 [dependabotFile]: ./.github/dependabot.yml
 [fundingFile]: ./.github/FUNDING.yml
 [prTemplateFile]: ./.github/pull_request_template.md
+[settingsFile]: ./.github/settings.yml
 [vsCodeFolder]: ./.vscode/
 [docsFolder]: ./docs/
 [styleguideFile]: ./docs/Styleguide.md
@@ -161,6 +163,7 @@ because most files need repo-specific customization.
 
 [ghGitAttributes]: https://github.com/gitattributes/gitattributes
 [ghGitIgnore]: https://github.com/github/gitignore
+[ghSettings]: https://github.com/repository-settings/app
 
 <!-- Public URIs (alphabetical by name) -->
 
