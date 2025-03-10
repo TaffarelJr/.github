@@ -86,6 +86,7 @@ flowchart TB
 | [`CONTRIBUTING.md`][contrib] |                              |                         ✅                          |            |
 | [`FUNDING.yml`][funding]     |              ✅              |                                                     |            |
 | `GOVERNANCE.md`              |                              |                                                     | Not needed |
+| [`LICENSE`][license]         |                              |                         ✅                          |            |
 | [`SECURITY.md`][security]    |                              |                         ✅                          |            |
 | [`SUPPORT.md`][support]      |                              |                         ✅                          |            |
 
@@ -104,6 +105,7 @@ flowchart TB
 [docs]: ./docs/
 [editorConfig]: ./.editorconfig
 [funding]: ./.github/FUNDING.yml
+[license]: ./LICENSE
 [message]: ./.gitmessage
 [messageGuide]: ./docs/StyleGuides.md#commit-messages
 [security]: ./SECURITY.md
