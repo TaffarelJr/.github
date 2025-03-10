@@ -116,6 +116,7 @@ flowchart TB
 | [`.gitmessage`][message]        |                              |                         ✅                          | [Commit message template][messageGuide]     |
 | [`dependabot.yml`][dependabot]  |                              |                         ✅                          | [Dependabot configuration][dependabotDoc]   |
 | [`docs/`][docs]                 |                              |                         ✅                          | Contains documentation                      |
+| [`settings.yml`][settings]      |                              |                         ✅                          | [Repository configuration][settingsDoc]     |
 
 <!-- Source Code URIs -->
 
@@ -133,6 +134,7 @@ flowchart TB
 [messageGuide]: ./docs/StyleGuides.md#commit-messages
 [prs]: ./.github/pull_request_template.md
 [security]: ./SECURITY.md
+[settings]: ./.github/settings.yml
 [styleGuides]: ./docs/StyleGuides.md
 [support]: ./SUPPORT.md
 [sync]: ./.github/workflows/template-sync.yml
@@ -142,5 +144,6 @@ flowchart TB
 [dependabotDoc]: https://docs.github.com/en/code-security/dependabot/working-with-dependabot/dependabot-options-reference
 [freeCodeCamp]: https://www.freecodecamp.org/news/how-to-use-the-dot-github-repository
 [health]: https://docs.github.com/en/communities/setting-up-your-project-for-healthy-contributions/creating-a-default-community-health-file
+[settingsDoc]: https://github.com/repository-settings/app
 [templates]: https://docs.github.com/en/communities/using-templates-to-encourage-useful-issues-and-pull-requests/configuring-issue-templates-for-your-repository
 [workflows]: https://docs.github.com/en/actions/how-tos/writing-workflows
