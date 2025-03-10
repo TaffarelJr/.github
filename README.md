@@ -75,6 +75,7 @@ flowchart TB
 - [Description of Files in This Template Repo](#description-of-files-in-this-template-repo)
   - [Community Health Files](#community-health-files)
   - [GitHub Templates](#github-templates)
+  - [GitHub Workflows](#github-workflows)
   - [Other Files](#other-files)
 
 ## Description of Files in This Template Repo
@@ -106,6 +107,12 @@ need to be overridden in each derived repo so the URLs point to the correct loca
 | 📄[Issue template chooser][chooser] |              ✅              |                                 |                 |
 | 📄[Pull request template][prs]      |                              |               ✅                |                 |
 
+### [GitHub Workflows][workflows]
+
+| Workflow                | Exists only</br>in this repo | Overridden in<br/>derived repos | Description                                                         |
+| :---------------------- | :--------------------------: | :-----------------------------: | :------------------------------------------------------------------ |
+| 📄[Template Sync][sync] |             N/A              |               ✅                | Synchronizes changes<br/>from a template repo<br/>to a derived repo |
+
 ### Other Files
 
 | File                                   | Exists only<br/>in this repo | Overridden in<br/>derived repos | Purpose                                     |
@@ -136,6 +143,7 @@ need to be overridden in each derived repo so the URLs point to the correct loca
 [security]: ./SECURITY.md
 [styleGuides]: ./docs/StyleGuides.md
 [support]: ./SUPPORT.md
+[sync]: ./.github/workflows/template-sync.yml
 [vsCode]: ./.vscode/
 
 <!-- Public URIs -->
