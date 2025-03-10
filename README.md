@@ -126,6 +126,7 @@ must be overridden and customized in each derived repository.
 | 📄[.gitmessage][gitMessageFile]          |               N/A               |               ✅                | Contains [commit message template][styleguideFile-commit] |
 | 📄[copilot-instructions.md][copilotFile] |               N/A               |               ✅                | Contains [Copilot configuration][ghCopilot]               |
 | 📄[dependabot.yml][dependabotFile]       |               N/A               |               ✅                | Contains [Dependabot configuration][ghDependabot]         |
+| 📄[settings.yml][settingsFile]           |               N/A               |               ✅                | Contains [Repo configuration][ghSettings]                 |
 
 <!-- Source Code URIs (alphabetical by file hierarchy) -->
 
@@ -137,6 +138,7 @@ must be overridden and customized in each derived repository.
 [dependabotFile]: ./.github/dependabot.yml
 [fundingFile]: ./.github/FUNDING.yml
 [prTemplateFile]: ./.github/pull_request_template.md
+[settingsFile]: ./.github/settings.yml
 [vsCodeFolder]: ./.vscode/
 [docsFolder]: ./docs/
 [styleguideFile]: ./docs/StyleGuides.md
@@ -155,6 +157,7 @@ must be overridden and customized in each derived repository.
 
 [ghGitAttributes]: https://github.com/gitattributes/gitattributes
 [ghGitIgnore]: https://github.com/github/gitignore
+[ghSettings]: https://github.com/repository-settings/app
 
 <!-- Public URIs (alphabetical by name) -->
 
