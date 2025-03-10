@@ -1,0 +1,82 @@
+name: Template Sync
+
+on:
+  # Runs daily at midnight (https://crontab.guru/#0_0_1_*_*)
+  # schedule:
+  #   - cron: "0 0 1 * *"
+
+  # Allows manual triggering
+  workflow_dispatch:
+
+env:
+  # Configurable parameters
+  GIT_USERNAME: github-actions
+  GIT_EMAIL: github-actions@github.com
+  TEMPLATE_REPO_URL: https://github.com/TaffarelJr/.github.git
+  TEMPLATE_REPO_NAME: template
+  TEMPLATE_REPO_BRANCH: main
+  BASE_BRANCH_NAME: main
+  SYNC_BRANCH_NAME: template-sync
+
+jobs:
+  template-sync:
+    name: Sync with Template Repository
+    runs-on: ubuntu-latest
+
+    # https://docs.github.com/en/actions/using-jobs/assigning-permissions-to-jobs
+    permissions:
+      contents: write
+      pull-requests: write
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0 # Ensure full history for merging
+
+      - name: Configure Git
+        run: |
+          git config user.name "${{ env.GIT_USERNAME }}"
+          git config user.email "${{ env.GIT_EMAIL }}"
+
+      - name: Get latest changes from template
+        run: |
+          git remote add ${{ env.TEMPLATE_REPO_NAME }} ${{ env.TEMPLATE_REPO_URL }} || true
+          git fetch ${{ env.TEMPLATE_REPO_NAME }}
+
+      - name: Check for changes to sync
+        id: check_changes
+        run: git diff --quiet origin/${{ env.BASE_BRANCH_NAME }} ${{ env.TEMPLATE_REPO_NAME }}/${{ env.TEMPLATE_REPO_BRANCH }} || echo "has_changes=true" >> $GITHUB_OUTPUT
+
+      - name: Switch to new branch
+        if: steps.check_changes.outputs.has_changes == 'true'
+        run: git checkout -B ${{ env.SYNC_BRANCH_NAME }} origin/${{ env.BASE_BRANCH_NAME }}
+
+      - name: Merge branches
+        if: steps.check_changes.outputs.has_changes == 'true'
+        id: merge
+        run: |
+          if git merge --no-edit ${{ env.TEMPLATE_REPO_NAME }}/${{ env.TEMPLATE_REPO_BRANCH }}; then
+            echo "conflict=false" >> $GITHUB_OUTPUT
+          else
+            echo "conflict=true" >> $GITHUB_OUTPUT
+            echo "Merge conflicts detected. These will need to be resolved manually."
+          fi
+
+      - name: Push changes
+        if: steps.check_changes.outputs.has_changes == 'true'
+        run: git push --force origin ${{ env.SYNC_BRANCH_NAME }}
+
+      - name: Create or update PR
+        if: steps.check_changes.outputs.has_changes == 'true'
+        uses: peter-evans/create-pull-request@v7
+        with:
+          branch: ${{ env.SYNC_BRANCH_NAME }}
+          base: ${{ env.BASE_BRANCH_NAME }}
+          title: "${{ steps.merge.outputs.conflict == 'true' && 'NEEDS RESOLUTION: ' || '' }}Merge changes from template repo"
+          body: >
+            Automated sync from template repository.
+
+            ${{ steps.merge.outputs.conflict == 'true' && '⚠️ **This PR contains merge conflicts that need to be resolved manually before merging.**' || '' }}
+          labels: "${{ steps.merge.outputs.conflict == 'true' && 'template sync,needs resolution' || 'template sync' }}"
+          delete-branch: true
