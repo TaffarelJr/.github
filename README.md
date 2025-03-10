@@ -75,6 +75,7 @@ flowchart TB
 - [Description of Files in This Template Repo](#description-of-files-in-this-template-repo)
   - [Community Health Files](#community-health-files)
   - [GitHub Templates](#github-templates)
+  - [GitHub Workflows](#github-workflows)
   - [Other Files](#other-files)
 
 ## Description of Files in This Template Repo
@@ -107,6 +108,12 @@ must be overridden and customized in each derived repository.
 | 📄[Issue template chooser][issueChooserFile] |               ✅                |                                 |                 |
 | 📄[Pull request template][prTemplateFile]    |                                 |               ✅                |                 |
 
+### [GitHub Workflows][ghWorkflows]
+
+| Workflow                    | Exists only in</br>.github repo | Overridden in<br/>template repo | Description                                                   |
+| :-------------------------- | :-----------------------------: | :-----------------------------: | :------------------------------------------------------------ |
+| 📄[Template Sync][syncFile] |               N/A               |               ✅                | Synchronizes files from a template repo<br/>to a derived repo |
+
 ### Other Files
 
 | File                                     | Exists only in</br>.github repo | Overridden in<br/>template repo | Description                                               |
@@ -124,6 +131,7 @@ must be overridden and customized in each derived repository.
 
 [issueTemplateFolder]: ./.github/ISSUE_TEMPLATE/
 [issueChooserFile]: ./.github/ISSUE_TEMPLATE/config.yml
+[syncFile]: ./.github/workflows/template-sync.yml
 [codeOwnFile]: ./.github/CODEOWNERS
 [copilotFile]: ./.github/copilot-instructions.md
 [dependabotFile]: ./.github/dependabot.yml
