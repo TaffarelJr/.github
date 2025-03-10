@@ -75,6 +75,7 @@ flowchart TB
 - [Description of Files in This Template Repo](#description-of-files-in-this-template-repo)
   - [Community Health](#community-health)
   - [GitHub Configuration](#github-configuration)
+  - [GitHub Workflows](#github-workflows)
   - [Other Files](#other-files)
 
 ## Description of Files in This Template Repo
@@ -111,6 +112,14 @@ because most files need repo-specific customization.
 | &nbsp;├─📄[dependabot.yml][dependabotFile]                        |               N/A               |               ✅                | [Dependabot configuration][ghDependabot]              |
 | &nbsp;└─📄[pull_request_template.md][prTemplateFile]              |                                 |               ✅                | [GitHub Pull Request template][ghPRTemplate]          |
 
+### [GitHub Workflows][ghWorkflows]
+
+| Workflow                                                                | Description                                               |
+| :---------------------------------------------------------------------- | :-------------------------------------------------------- |
+| 📁[.github/][githubFolder]                                              |                                                           |
+| &nbsp;└─📁[workflows/][workflowFolder]                                  |                                                           |
+| &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;└─📄[Template Sync][syncFile] | Synchronizes files from a template repo to a derived repo |
+
 ### Other Files
 
 | File                                  | Description                                      |
@@ -127,6 +136,8 @@ because most files need repo-specific customization.
 [githubFolder]: ./.github/
 [issueFormsFolder]: ./.github/ISSUE_TEMPLATE/
 [issueChooserFile]: ./.github/ISSUE_TEMPLATE/config.yml
+[workflowFolder]: ./.github/workflows/
+[syncFile]: ./.github/workflows/template-sync.yml
 [codeOwnFile]: ./.github/CODEOWNERS
 [copilotFile]: ./.github/copilot-instructions.md
 [dependabotFile]: ./.github/dependabot.yml
