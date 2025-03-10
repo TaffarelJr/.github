@@ -136,8 +136,20 @@ Checked files are stored in this repo.
   - Defined in this repo, synced other other repos.
   - Each repo must override the URIs in the template file.
 
+### GitHub Workflows
+
+- `Template Sync` — Synchronizes changes in a template repo to a child repo.
+  - Executes nightly at midnight.
+  - Can be manually executed.
+  - Defined in this repo, synced other other repos.
+  - Each repo must override the template repo to sync with.
+
 ### Other Files
 
+- `.github/.templatesyncignore` — Defines which files should not be included
+  in the template sync GitHub Action.
+  - Defined in this repo, synced (manually) other other repos.
+  - Each repo must override the template repo to sync with.
 - `docs/` — Contains additional information about various topics
   that applies to all repos.
   - Files only exist in this repo.
