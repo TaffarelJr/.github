@@ -1,0 +1,36 @@
+name: Template Sync
+
+on:
+  # Daily at midnight (https://crontab.guru/#0_0_1_*_*)
+  schedule:
+    - cron: "0 0 1 * *"
+
+  # Manual trigger
+  workflow_dispatch:
+
+jobs:
+  repo-sync:
+    name: Sync with .github repository
+    runs-on: ubuntu-latest
+
+    # https://docs.github.com/en/actions/using-jobs/assigning-permissions-to-jobs
+    permissions:
+      contents: write
+      pull-requests: write
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: actions-template-sync
+        uses: AndreasAugustin/actions-template-sync@v2
+        with:
+          # https://github.com/marketplace/actions/actions-template-sync#action-inputs
+          source_repo_path: TaffarelJr/.github
+          upstream_branch: main
+          pr_branch_name_prefix: template-sync
+          pr_title: Merge changes from template repo
+          pr_body: Merge ${TEMPLATE_GIT_HASH} from ${SOURCE_REPO}
+          pr_labels: template sync
+          pr_commit_msg: "chore: merge changes from template repo"
+          is_pr_cleanup: false # Use this with caution
