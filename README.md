@@ -110,20 +110,24 @@ must be overridden and customized in each derived repository.
 
 ### Other Files
 
-| File                                  | Exists only in</br>.github repo | Overridden in<br/>template repo | Description                                               |
-| :------------------------------------ | :-----------------------------: | :-----------------------------: | :-------------------------------------------------------- |
-| 📁[.vscode/][vsCodeFolder]            |               N/A               |               ✅                | Contains VSCode settings                                  |
-| 📁[docs/][docsFolder]                 |               N/A               |               ✅                | Contains documentation                                    |
-| 📄[.editorconfig][editorConfigFile]   |               N/A               |               ✅                | Contains [styleguide rule definitions][styleguideFile]    |
-| 📄[.gitattributes][gitAttributesFile] |               N/A               |               ✅                | Built using [scaffolding][ghGitAttributes]                |
-| 📄[.gitignore][gitIgnoreFile]         |               N/A               |               ✅                | Built using [scaffolding][ghGitIgnore]                    |
-| 📄[.gitmessage][gitMessageFile]       |               N/A               |               ✅                | Contains [commit message template][styleguideFile-commit] |
+| File                                     | Exists only in</br>.github repo | Overridden in<br/>template repo | Description                                               |
+| :--------------------------------------- | :-----------------------------: | :-----------------------------: | :-------------------------------------------------------- |
+| 📁[.vscode/][vsCodeFolder]               |               N/A               |               ✅                | Contains VSCode settings                                  |
+| 📁[docs/][docsFolder]                    |               N/A               |               ✅                | Contains documentation                                    |
+| 📄[.editorconfig][editorConfigFile]      |               N/A               |               ✅                | Contains [styleguide rule definitions][styleguideFile]    |
+| 📄[.gitattributes][gitAttributesFile]    |               N/A               |               ✅                | Built using [scaffolding][ghGitAttributes]                |
+| 📄[.gitignore][gitIgnoreFile]            |               N/A               |               ✅                | Built using [scaffolding][ghGitIgnore]                    |
+| 📄[.gitmessage][gitMessageFile]          |               N/A               |               ✅                | Contains [commit message template][styleguideFile-commit] |
+| 📄[copilot-instructions.md][copilotFile] |               N/A               |               ✅                | Contains [Copilot configuration][ghCopilot]               |
+| 📄[dependabot.yml][dependabotFile]       |               N/A               |               ✅                | Contains [Dependabot configuration][ghDependabot]         |
 
 <!-- Source Code URIs (alphabetical by file hierarchy) -->
 
 [issueTemplateFolder]: ./.github/ISSUE_TEMPLATE/
 [issueChooserFile]: ./.github/ISSUE_TEMPLATE/config.yml
 [codeOwnFile]: ./.github/CODEOWNERS
+[copilotFile]: ./.github/copilot-instructions.md
+[dependabotFile]: ./.github/dependabot.yml
 [fundingFile]: ./.github/FUNDING.yml
 [prTemplateFile]: ./.github/pull_request_template.md
 [vsCodeFolder]: ./.vscode/
@@ -149,5 +153,7 @@ must be overridden and customized in each derived repository.
 
 [freeCodeCamp]: https://www.freecodecamp.org/news/how-to-use-the-dot-github-repository
 [ghComHealth]: https://docs.github.com/en/communities/setting-up-your-project-for-healthy-contributions/creating-a-default-community-health-file
+[ghCopilot]: https://docs.github.com/en/copilot/customizing-copilot/adding-repository-custom-instructions-for-github-copilot
+[ghDependabot]: https://docs.github.com/en/code-security/dependabot/working-with-dependabot/dependabot-options-reference
 [ghTemplates]: https://docs.github.com/en/communities/using-templates-to-encourage-useful-issues-and-pull-requests/configuring-issue-templates-for-your-repository
 [ghWorkflows]: https://docs.github.com/en/actions/how-tos/writing-workflows
