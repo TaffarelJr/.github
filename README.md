@@ -70,6 +70,29 @@ flowchart TB
   T2 --> R4
 ```
 
+## Description of Files in This Template Repo
+
+While GitHub automatically inherits some files from this `.github` repo,
+others must be copied to derived repos to allow customization.
+Files that contain repo-specific links (to documentation, issues, discussions, etc.)
+need to be overridden in each derived repo so the URLs point to the correct location.
+
+| File                              | Exists only<br/>in this repo | Overridden in<br/>derived repos | Purpose                                     |
+| :-------------------------------- | :--------------------------: | :-----------------------------: | :------------------------------------------ |
+| 📁[`.vscode/`][vsCode]            |             N/A              |               ✅                | Contains VSCode settings                    |
+| 📁[`docs/`][docs]                 |             N/A              |               ✅                | Contains documentation                      |
+| 📄[`.editorconfig`][editorConfig] |             N/A              |               ✅                | [Style guide rule definitions][styleGuides] |
+| 📄[`.gitmessage`][message]        |             N/A              |               ✅                | [Commit message template][messageGuide]     |
+
+<!-- Source Code URIs -->
+
+[docs]: ./docs/
+[editorConfig]: ./.editorconfig
+[message]: ./.gitmessage
+[messageGuide]: ./docs/StyleGuides.md#commit-messages
+[styleGuides]: ./docs/StyleGuides.md
+[vsCode]: ./.vscode/
+
 <!-- Public URIs -->
 
 [freeCodeCamp]: https://www.freecodecamp.org/news/how-to-use-the-dot-github-repository

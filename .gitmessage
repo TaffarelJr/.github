@@ -1,0 +1,8 @@
+####### Imperative, present tense: "change" - not "changed|changes|changing"
+####### Type: build|chore|ci|docs|feat|fix|infra|perf|refactor|revert|style|test
+####### Don't capitalize the first letter; no dot (.) at the end
+type[(scope)][!]: description
+
+[body]
+
+[BREAKING CHANGE:]

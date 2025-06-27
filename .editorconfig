@@ -1,0 +1,42 @@
+#───────────────────────────────────────────────────────────────────────────────
+# EditorConfig: https://EditorConfig.org
+# Remove the line below if you want to
+# inherit .editorconfig settings from higher directories
+#───────────────────────────────────────────────────────────────────────────────
+
+root = true
+
+#───────────────────────────────────────────────────────────────────────────────
+# Default Settings for all files
+#───────────────────────────────────────────────────────────────────────────────
+
+[*]
+charset = utf-8
+indent_style = space
+indent_size = 4
+tab_width = 4
+max_line_length = 120
+trim_trailing_whitespace = true
+insert_final_newline = true
+
+#───────────────────────────────────────────────────────────────────────────────
+# Vertical rulers
+#───────────────────────────────────────────────────────────────────────────────
+
+guidelines = 80 1px solid 5000ff00, 100 1px solid 75ffff00, 120 1px solid ff8b0000
+
+#───────────────────────────────────────────────────────────────────────────────
+# Exceptions required by file format
+#───────────────────────────────────────────────────────────────────────────────
+
+[*.md]
+indent_size = 2
+tab_width = 2
+
+#───────────────────────────────────────────────────────────────────────────────
+# Exceptions for structured data files (looks better)
+#───────────────────────────────────────────────────────────────────────────────
+
+[*.{json,yaml,yml}]
+indent_size = 2
+tab_width = 2
