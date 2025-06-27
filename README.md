@@ -70,6 +70,39 @@ flowchart TB
   T2 --> R4
 ```
 
+## Description of Files in This Template Repo
+
+Derived repositories automatically inherit certain files from this template
+through GitHub's default file mechanism.
+However, files that require repo-specific customization
+(such as those containing links to documentation, issues, discussions, etc.)
+must be overridden and customized in each derived repository.
+
+| File                                  | Exists only in</br>.github repo | Overridden in<br/>template repo | Description                                               |
+| :------------------------------------ | :-----------------------------: | :-----------------------------: | :-------------------------------------------------------- |
+| 📁[.vscode/][vsCodeFolder]            |               N/A               |               ✅                | Contains VSCode settings                                  |
+| 📁[docs/][docsFolder]                 |               N/A               |               ✅                | Contains documentation                                    |
+| 📄[.editorconfig][editorConfigFile]   |               N/A               |               ✅                | Contains [styleguide rule definitions][styleguideFile]    |
+| 📄[.gitattributes][gitAttributesFile] |               N/A               |               ✅                | Built using [scaffolding][ghGitAttributes]                |
+| 📄[.gitignore][gitIgnoreFile]         |               N/A               |               ✅                | Built using [scaffolding][ghGitIgnore]                    |
+| 📄[.gitmessage][gitMessageFile]       |               N/A               |               ✅                | Contains [commit message template][styleguideFile-commit] |
+
+<!-- Source Code URIs (alphabetical by file hierarchy) -->
+
+[vsCodeFolder]: ./.vscode/
+[docsFolder]: ./docs/
+[styleguideFile]: ./docs/StyleGuides.md
+[styleguideFile-commit]: ./docs/StyleGuides.md#commit-messages
+[editorConfigFile]: ./.editorconfig
+[gitAttributesFile]: ./.gitattributes
+[gitIgnoreFile]: ./.gitignore
+[gitMessageFile]: ./.gitmessage
+
+<!-- GitHub Repo URIs (alphabetical by name) -->
+
+[ghGitAttributes]: https://github.com/gitattributes/gitattributes
+[ghGitIgnore]: https://github.com/github/gitignore
+
 <!-- Public URIs (alphabetical by name) -->
 
 [freeCodeCamp]: https://www.freecodecamp.org/news/how-to-use-the-dot-github-repository
