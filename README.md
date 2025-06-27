@@ -70,6 +70,22 @@ flowchart TB
   T2 --> R4
 ```
 
+## Description of Files in This Template Repo
+
+| File                            | Exists only</br>in this repo | Synced to<br/>(and overridden in)<br/>derived repos | Purpose                                     |
+| :------------------------------ | :--------------------------: | :-------------------------------------------------: | :------------------------------------------ |
+| [`.editorconfig`][editorConfig] |                              |                         ✅                          | [Style guide rule definitions][styleGuides] |
+| [`.gitmessage`][message]        |                              |                         ✅                          | [Commit message template][messageGuide]     |
+| [`docs/`][docs]                 |                              |                         ✅                          | Contains documentation                      |
+
+<!-- Source Code URIs -->
+
+[docs]: ./docs/
+[editorConfig]: ./.editorconfig
+[message]: ./.gitmessage
+[messageGuide]: ./docs/StyleGuides.md#commit-messages
+[styleGuides]: ./docs/StyleGuides.md
+
 <!-- Public URIs -->
 
 [freeCodeCamp]: https://www.freecodecamp.org/news/how-to-use-the-dot-github-repository
