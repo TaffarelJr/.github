@@ -70,6 +70,33 @@ flowchart TB
   T2 --> R4
 ```
 
+## Description of Files in This Template Repo
+
+| File                                  | Description                                      |
+| :------------------------------------ | :----------------------------------------------- |
+| 📁[.vscode/][vsCodeFolder]            | Contains VSCode settings                         |
+| 📁[docs/][docsFolder]                 | Contains documentation                           |
+| 📄[.editorconfig][editorConfigFile]   | [Styleguide rule definitions][styleguideFile]    |
+| 📄[.gitattributes][gitAttributesFile] | Built using [scaffolding][ghGitAttributes]       |
+| 📄[.gitignore][gitIgnoreFile]         | Built using [scaffolding][ghGitIgnore]           |
+| 📄[.gitmessage][gitMessageFile]       | [Commit message template][styleguideFile-commit] |
+
+<!-- Source Code URIs (alphabetical by file hierarchy) -->
+
+[vsCodeFolder]: ./.vscode/
+[docsFolder]: ./docs/
+[styleguideFile]: ./docs/StyleGuides.md
+[styleguideFile-commit]: ./docs/StyleGuides.md#commit-messages
+[editorConfigFile]: ./.editorconfig
+[gitAttributesFile]: ./.gitattributes
+[gitIgnoreFile]: ./.gitignore
+[gitMessageFile]: ./.gitmessage
+
+<!-- GitHub Repo URIs (alphabetical by name) -->
+
+[ghGitAttributes]: https://github.com/gitattributes/gitattributes
+[ghGitIgnore]: https://github.com/github/gitignore
+
 <!-- Public URIs (alphabetical by name) -->
 
 [freeCodeCamp]: https://www.freecodecamp.org/news/how-to-use-the-dot-github-repository

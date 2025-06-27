@@ -1,0 +1,8 @@
+{
+  "editor.rulers": [
+    { "column": 80, "color": "#00ff0050" },
+    { "column": 100, "color": "#ffff0075" },
+    { "column": 120, "color": "#8b0000ff" }
+  ],
+  "plantuml.exportOutDir": "docs/img"
+}
