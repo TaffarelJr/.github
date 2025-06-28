@@ -112,6 +112,7 @@ flowchart TB
 
 | File                                 | Exists only</br>in this repo | Synced to<br/>(and overridden in)<br/>derived repos | Purpose                                     |
 | :----------------------------------- | :--------------------------: | :-------------------------------------------------: | :------------------------------------------ |
+| [`_Checklist.md`][checklist]         |                              |                         ✅                          | New repo checklist                          |
 | [`.editorconfig`][editorConfig]      |                              |                         ✅                          | [Style guide rule definitions][styleGuides] |
 | [`.gitmessage`][message]             |                              |                         ✅                          | [Commit message template][messageGuide]     |
 | [`copilot-instructions.md`][copilot] |                              |                         ✅                          | [Copilot configuration][copilotDoc]         |
@@ -121,6 +122,7 @@ flowchart TB
 
 <!-- Source Code URIs -->
 
+[checklist]: ./_Checklist.md
 [chooser]: ./.github/ISSUE_TEMPLATE/config.yml
 [coc]: ./CODE_OF_CONDUCT.md
 [codeOwners]: ./.github/CODEOWNERS
