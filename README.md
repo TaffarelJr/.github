@@ -110,13 +110,14 @@ flowchart TB
 
 ### Other Files
 
-| File                            | Exists only</br>in this repo | Synced to<br/>(and overridden in)<br/>derived repos | Purpose                                     |
-| :------------------------------ | :--------------------------: | :-------------------------------------------------: | :------------------------------------------ |
-| [`.editorconfig`][editorConfig] |                              |                         ✅                          | [Style guide rule definitions][styleGuides] |
-| [`.gitmessage`][message]        |                              |                         ✅                          | [Commit message template][messageGuide]     |
-| [`dependabot.yml`][dependabot]  |                              |                         ✅                          | [Dependabot configuration][dependabotDoc]   |
-| [`docs/`][docs]                 |                              |                         ✅                          | Contains documentation                      |
-| [`settings.yml`][settings]      |                              |                         ✅                          | [Repository configuration][settingsDoc]     |
+| File                                 | Exists only</br>in this repo | Synced to<br/>(and overridden in)<br/>derived repos | Purpose                                     |
+| :----------------------------------- | :--------------------------: | :-------------------------------------------------: | :------------------------------------------ |
+| [`.editorconfig`][editorConfig]      |                              |                         ✅                          | [Style guide rule definitions][styleGuides] |
+| [`.gitmessage`][message]             |                              |                         ✅                          | [Commit message template][messageGuide]     |
+| [`copilot-instructions.md`][copilot] |                              |                         ✅                          | [Copilot configuration][copilotDoc]         |
+| [`dependabot.yml`][dependabot]       |                              |                         ✅                          | [Dependabot configuration][dependabotDoc]   |
+| [`docs/`][docs]                      |                              |                         ✅                          | Contains documentation                      |
+| [`settings.yml`][settings]           |                              |                         ✅                          | [Repository configuration][settingsDoc]     |
 
 <!-- Source Code URIs -->
 
@@ -124,6 +125,7 @@ flowchart TB
 [coc]: ./CODE_OF_CONDUCT.md
 [codeOwners]: ./.github/CODEOWNERS
 [contrib]: ./CONTRIBUTING.md
+[copilot]: ./.github/copilot-instructions.md
 [dependabot]: ./.github/dependabot.yml
 [docs]: ./docs/
 [editorConfig]: ./.editorconfig
@@ -141,6 +143,7 @@ flowchart TB
 
 <!-- Public URIs -->
 
+[copilotDoc]: https://docs.github.com/en/copilot/customizing-copilot/adding-repository-custom-instructions-for-github-copilot
 [dependabotDoc]: https://docs.github.com/en/code-security/dependabot/working-with-dependabot/dependabot-options-reference
 [freeCodeCamp]: https://www.freecodecamp.org/news/how-to-use-the-dot-github-repository
 [health]: https://docs.github.com/en/communities/setting-up-your-project-for-healthy-contributions/creating-a-default-community-health-file
