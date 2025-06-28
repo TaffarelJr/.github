@@ -121,6 +121,7 @@ must be overridden and customized in each derived repository.
 | :--------------------------------------- | :-----------------------------: | :-----------------------------: | :-------------------------------------------------------- |
 | 📁[.vscode/][vsCodeFolder]               |               N/A               |               ✅                | Contains VSCode settings                                  |
 | 📁[docs/][docsFolder]                    |               N/A               |               ✅                | Contains documentation                                    |
+| 📄[\_checklist.md][checklistFile]        |               N/A               |               ✅                | New template repo checklist                               |
 | 📄[.editorconfig][editorConfigFile]      |               N/A               |               ✅                | Contains [styleguide rule definitions][styleguideFile]    |
 | 📄[.gitattributes][gitAttributesFile]    |               N/A               |               ✅                | Built using [scaffolding][ghGitAttributes]                |
 | 📄[.gitignore][gitIgnoreFile]            |               N/A               |               ✅                | Built using [scaffolding][ghGitIgnore]                    |
@@ -144,6 +145,7 @@ must be overridden and customized in each derived repository.
 [docsFolder]: ./docs/
 [styleguideFile]: ./docs/StyleGuides.md
 [styleguideFile-commit]: ./docs/StyleGuides.md#commit-messages
+[checklistFile]: ./_checklist.md
 [editorConfigFile]: ./.editorconfig
 [gitAttributesFile]: ./.gitattributes
 [gitIgnoreFile]: ./.gitignore
