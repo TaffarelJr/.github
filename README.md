@@ -119,6 +119,7 @@ need to be overridden in each derived repo so the URLs point to the correct loca
 | :------------------------------------- | :--------------------------: | :-----------------------------: | :------------------------------------------ |
 | 📁[`.vscode/`][vsCode]                 |             N/A              |               ✅                | Contains VSCode settings                    |
 | 📁[`docs/`][docs]                      |             N/A              |               ✅                | Contains documentation                      |
+| 📄[`_Checklist.md`][checklist]         |             N/A              |               ✅                | New template repo checklist                 |
 | 📄[`.editorconfig`][editorConfig]      |             N/A              |               ✅                | [Style guide rule definitions][styleGuides] |
 | 📄[`.gitmessage`][message]             |             N/A              |               ✅                | [Commit message template][messageGuide]     |
 | 📄[`copilot-instructions.md`][copilot] |             N/A              |               ✅                | [Copilot configuration][copilotDoc]         |
@@ -127,6 +128,7 @@ need to be overridden in each derived repo so the URLs point to the correct loca
 
 <!-- Source Code URIs -->
 
+[checklist]: ./_Checklist.md
 [chooser]: ./.github/ISSUE_TEMPLATE/config.yml
 [coc]: ./CODE_OF_CONDUCT.md
 [codeOwners]: ./.github/CODEOWNERS
