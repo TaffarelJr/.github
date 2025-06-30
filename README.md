@@ -83,6 +83,7 @@ flowchart TB
 | File                         | Exists only</br>in this repo | Synced to<br/>(and overridden in)<br/>derived repos | Notes      |
 | :--------------------------- | :--------------------------: | :-------------------------------------------------: | :--------- |
 | [`CODE_OF_CONDUCT.md`][coc]  |              ✅              |                                                     |            |
+| [`CODEOWNERS`][codeOwners]   |                              |                         ✅                          |            |
 | [`CONTRIBUTING.md`][contrib] |                              |                         ✅                          |            |
 | [`FUNDING.yml`][funding]     |              ✅              |                                                     |            |
 | `GOVERNANCE.md`              |                              |                                                     | Not needed |
@@ -101,6 +102,7 @@ flowchart TB
 <!-- Source Code URIs -->
 
 [coc]: ./CODE_OF_CONDUCT.md
+[codeOwners]: ./.github/CODEOWNERS
 [contrib]: ./CONTRIBUTING.md
 [docs]: ./docs/
 [editorConfig]: ./.editorconfig

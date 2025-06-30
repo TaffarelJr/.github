@@ -1,0 +1,11 @@
+# This file defines code owners for this repository
+# Code owners will be automatically requested for review on pull requests
+# Format: pattern owner1 owner2 ...
+# See: https://docs.github.com/en/repositories/managing-your-repositorys-settings-and-features/customizing-your-repository/about-code-owners
+
+# Default owner for everything in the repo
+* @TaffarelJr
+
+# You can add more specific patterns later if needed
+# For example:
+# /docs/ @TaffarelJr @another-user
