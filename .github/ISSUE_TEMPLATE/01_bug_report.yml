@@ -7,7 +7,7 @@ body:
     attributes:
       value: >
         Thanks for helping to fix something that's broken! 🤗 See the
-        [`CONTRIBUTING.md`](https://github.com/TaffarelJr/.github/blob/main/CONTRIBUTING.md#how-do-i-submit-a-good-bug-report)
+        [`CONTRIBUTING.md`](${{ github.server_url }}/${{ github.repository }}/blob/main/CONTRIBUTING.md#how-do-i-submit-a-good-bug-report)
         file for tips on writing an effective bug report.
 
   - type: checkboxes
