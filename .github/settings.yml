@@ -120,7 +120,7 @@ branches:
 rulesets:
   - name: Protect default branch history
     target: branch
-    enforcement: disabled
+    enforcement: active
     bypass_actors: []
     conditions:
       ref_name:
@@ -132,7 +132,7 @@ rulesets:
 
   - name: PRs must be reviewed
     target: branch
-    enforcement: disabled
+    enforcement: active
     bypass_actors: []
     conditions:
       ref_name:
@@ -150,7 +150,7 @@ rulesets:
 
   - name: Status checks must pass
     target: branch
-    enforcement: disabled
+    enforcement: active
     bypass_actors:
       - actor_id: 5 # Repository admin
         actor_type: RepositoryRole
