@@ -7,14 +7,10 @@ Multiple small PRs are better than one large PR.
 Feel free to delete these comments after reading.
 -->
 
-## ✅ Prerequisites
-
-- [ ] My code follows the project's [styleguide](../docs/Styleguide.md)
-- [ ] My code builds without errors or warnings
-- [ ] All tests pass
-- [ ] I've updated documentation as needed
-- [ ] My commit messages follow the
-      [Conventional Commits](https://www.conventionalcommits.org) format
+<!--
+Resolves #123
+Related to #456
+-->
 
 ## 📝 Description
 
@@ -27,29 +23,18 @@ Optional: Use checkboxes to track specific changes:
 - [x] Completed
 -->
 
-## 📸 Screenshots
+## ✅ Checklist
 
-<!--
-If applicable, add screenshots to help demonstrate the changes.
-Include text descriptions if possible, to help with searching.
--->
-
-## 🧪 Testing
-
-<!-- Describe how these changes were tested. Check all that apply: -->
-
-- [ ] Unit tests added/updated
-- [ ] Integration tests added/updated
-- [ ] Manual testing performed
+- [ ] My code follows the project's [styleguide](../docs/Styleguide.md)
+- [ ] My code builds without errors or warnings
+- [ ] All tests pass
+- [ ] I've updated documentation as needed
+- [ ] My commit messages follow the
+      [Conventional Commits](https://www.conventionalcommits.org) format
 
 ## ➕ Additional Context
 
 <!--
-Add any other context about the changes here:
+Add any other context about particular changes here:
 breaking changes, new dependencies, behavior differences, etc.
--->
-
-<!--
-Resolves #123
-Related to #456
 -->
