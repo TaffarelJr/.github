@@ -58,7 +58,10 @@ so the template sync workflow can merge its commits into the new template repo.
 Execute the following commands:
 
 ```bash
-# May need to configure SSH key before executing this
+# May need to configure SSH key before executing this.
+# May also need to use a custom remote hostname,
+# to associate the correct credentials.
+
 git config remote.pushdefault origin
 git remote add template git@github.com:TaffarelJr/.github.git
 git fetch template
