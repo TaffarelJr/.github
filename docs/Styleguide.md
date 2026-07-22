@@ -159,7 +159,7 @@ See the [local documentation][ccFile] for more information.
 <!-- Source Code URIs (alphabetical by file hierarchy) -->
 
 [ccFile]: ./ConventionalCommits.md
-[rulersFile]: ./docs/VerticalRulers.md
+[rulersFile]: ./VerticalRulers.md
 [editorConfigFile]: ../.editorconfig
 [gitAttributesFile]: ../.gitattributes
 

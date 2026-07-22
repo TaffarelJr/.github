@@ -1,9 +1,9 @@
-# Creating a New Template Repo <!-- omit in toc -->
+# Creating a New Template Repo <!-- omit from toc -->
 
 Template repos use the [.github][ghTemplate] repo as their base template.
 Follow these steps to create a new template repo derived from it.
 
-#### Table of Contents <!-- omit in toc -->
+#### Table of Contents <!-- omit from toc -->
 
 - [1. Create the new repo](#1-create-the-new-repo)
 - [2. Configure manual repo settings](#2-configure-manual-repo-settings)

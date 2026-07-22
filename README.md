@@ -15,7 +15,7 @@ title: Personal GitHub Repo Structure
 flowchart TB
 
   subgraph row1 [" "]
-    github(**.github**
+    github(<b>.github</b>
     repo)
 
     githubNote[Contains core files
@@ -23,12 +23,12 @@ flowchart TB
   end
 
   subgraph row2 [" "]
-    templateA(**.template-a**
+    templateA(<b>.template-a</b>
     repo)
 
-    repo1(repo 1)
+    repo1(repo-1)
 
-    templateB(**.template-b**
+    templateB(<b>.template-b</b>
     repo)
 
     templateNote[Templates contain
@@ -37,16 +37,16 @@ flowchart TB
   end
 
   subgraph row3 [" "]
-    repo2(repo 2)
-    repo3(repo 3)
-    repo4(repo 4)
+    repo2(repo-2)
+    repo3(repo-3)
+    repo4(repo-4)
 
-    templateC(**.template-c**
+    templateC(<b>.template-c</b>
     repo)
   end
 
   subgraph row4 [" "]
-    repo5(repo 5)
+    repo5(repo-5)
   end
 
   classDef row opacity:0
@@ -91,7 +91,7 @@ because most files need repo-specific customization.
 
 ### [Community Health][ghComHealth]
 
-| File                                | Exists only in</br>.github repo | Overridden in<br/>template repo | Notes                    |
+| File                                | Exists only in<br/>.github repo | Overridden in<br/>template repo | Notes                    |
 | :---------------------------------- | :-----------------------------: | :-----------------------------: | :----------------------- |
 | 📁[.github/][githubFolder]           |                                 |                                 |                          |
 | &nbsp;├─📄[CODEOWNERS][codeOwnFile]  |               N/A               |                ✅                |                          |
@@ -103,9 +103,9 @@ because most files need repo-specific customization.
 | 📄[SECURITY.md][securityFile]        |                                 |                ✅                | Links to GitHub repo     |
 | 📄[SUPPORT.md][supportFile]          |                                 |                ✅                | Links to other files     |
 
-### [GitHub Configuration][ghTemplates]
+### GitHub Configuration
 
-| Template                                                         | Exists only in</br>.github repo | Overridden in<br/>template repo | Description                                     |
+| Template                                                         | Exists only in<br/>.github repo | Overridden in<br/>template repo | Description                                     |
 | :--------------------------------------------------------------- | :-----------------------------: | :-----------------------------: | :---------------------------------------------- |
 | 📁[.github/][githubFolder]                                        |                                 |                                 |                                                 |
 | &nbsp;├─📁DISCUSSION_TEMPLATE/                                    |                —                |                —                | Not implemented                                 |
@@ -177,7 +177,7 @@ because most files need repo-specific customization.
 [ghCopilot]: https://docs.github.com/en/copilot/customizing-copilot/adding-repository-custom-instructions-for-github-copilot
 [ghDependabot]: https://docs.github.com/en/code-security/dependabot/working-with-dependabot/dependabot-options-reference
 [ghIssueChooser]: https://docs.github.com/en/communities/using-templates-to-encourage-useful-issues-and-pull-requests/configuring-issue-templates-for-your-repository#configuring-the-template-chooser
-[ghIssueForms]: https://docs.github.com/en/communities/using-templates-to-encourage-useful-issues-and-pull-requests/manually-creating-a-single-issue-template-for-your-repositoryhttps://docs.github.com/en/communities/using-templates-to-encourage-useful-issues-and-pull-requests/syntax-for-issue-forms
+[ghIssueForms]: https://docs.github.com/en/communities/using-templates-to-encourage-useful-issues-and-pull-requests/syntax-for-issue-forms
 [ghPRTemplate]: https://docs.github.com/en/communities/using-templates-to-encourage-useful-issues-and-pull-requests/creating-a-pull-request-template-for-your-repository
 [ghTemplates]: https://docs.github.com/en/communities/using-templates-to-encourage-useful-issues-and-pull-requests/configuring-issue-templates-for-your-repository
 [ghWorkflows]: https://docs.github.com/en/actions/how-tos/writing-workflows
