@@ -3,9 +3,9 @@
 name: Template Sync
 
 on:
-  # Runs daily at midnight (https://crontab.guru/#0_0_1_*_*)
+  # Runs nightly at midnight UTC (https://crontab.guru/#0_0_*_*_*)
   # schedule:
-  #   - cron: "0 0 1 * *"
+  #   - cron: "0 0 * * *"
 
   # Can be triggered manually
   workflow_dispatch:
@@ -82,5 +82,5 @@ jobs:
             Automated sync from template repo.
 
             ${{ steps.merge.outputs.conflict == 'true' && '⚠️ **This PR contains merge conflicts that need to be resolved manually before merging.**' || '' }}
-          labels: "${{ steps.merge.outputs.conflict == 'true' && 'template sync,needs resolution' || 'template sync' }}"
+          labels: "${{ steps.merge.outputs.conflict == 'true' && 'template sync,needs fix' || 'template sync' }}"
           delete-branch: true
