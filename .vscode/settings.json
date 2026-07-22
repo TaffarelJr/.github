@@ -1,8 +1,45 @@
 {
+  "[json]": {
+    "editor.defaultFormatter": "vscode.json-language-features"
+  },
+  "[jsonc]": {
+    "editor.defaultFormatter": "vscode.json-language-features"
+  },
+  "[markdown]": {
+    "editor.defaultFormatter": "yzhang.markdown-all-in-one"
+  },
+  "[xml]": {
+    "editor.defaultFormatter": "redhat.vscode-xml"
+  },
+  "[yaml]": {
+    "editor.defaultFormatter": "redhat.vscode-yaml"
+  },
+  "editor.formatOnSave": true,
   "editor.rulers": [
     { "column": 80, "color": "#00ff0050" },
     { "column": 100, "color": "#ffff0075" },
     { "column": 120, "color": "#8b0000ff" }
   ],
-  "plantuml.exportOutDir": "docs/img"
+  "files.associations": {
+    ".vsconfig": "jsonc",
+    "appsettings*.json": "jsonc",
+    "global.json": "jsonc",
+    "host.json": "jsonc",
+    "*.dcproj": "xml",
+    "*.slnx": "xml"
+  },
+  "files.insertFinalNewline": true,
+  "files.trimFinalNewlines": true,
+  "files.trimTrailingWhitespace": true,
+  "markdown.validate.enabled": true,
+  "plantuml.exportOutDir": "docs/img",
+  "xml.format.enabled": true,
+  "xml.format.joinCommentLines": false,
+  "xml.format.joinContentLines": false,
+  "xml.format.maxLineWidth": 0,
+  "xml.format.preserveAttributeLineBreaks": true,
+  "xml.format.splitAttributes": "preserve",
+  "yaml.format.enable": true,
+  "yaml.format.printWidth": 0,
+  "yaml.format.proseWrap": "preserve"
 }

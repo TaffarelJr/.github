@@ -26,18 +26,32 @@ insert_final_newline = true
 guidelines = 80 1px solid 5000ff00, 100 1px solid 75ffff00, 120 1px solid ff8b0000
 
 #───────────────────────────────────────────────────────────────────────────────
-# Exceptions required by file format
+# Overrides required by specific file formats
 #───────────────────────────────────────────────────────────────────────────────
 
-[*.{bash,sh}]
+[*.{bash,fish,sh}]
 end_of_line = lf
 
+[*.{bat,cdxml,cmd,ps1,ps1x,ps1xml,psd1,psm1,psrc,pssc}]
+end_of_line = crlf
+
+[*.sln]
+indent_style = tab
+
+# Industry standard
 [*.md]
+trim_trailing_whitespace = false
+indent_size = 2
+tab_width = 2
+
+# Industry standard
+[*.{yaml,yml}]
+indent_style = space
 indent_size = 2
 tab_width = 2
 
 #───────────────────────────────────────────────────────────────────────────────
-# Exceptions for structured data files (looks better)
+# Overrides for other structured data files (looks better)
 #───────────────────────────────────────────────────────────────────────────────
 
 # Markup files
@@ -52,10 +66,5 @@ tab_width = 2
 
 # XML data files
 [*.{svg,xml}]
-indent_size = 2
-tab_width = 2
-
-# YAML data files
-[*.{yaml,yml}]
 indent_size = 2
 tab_width = 2

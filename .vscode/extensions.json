@@ -1,0 +1,18 @@
+{
+  "recommendations": [
+    // Mermaid diagram rendering in Markdown preview
+    "bierner.markdown-mermaid",
+    // EditorConfig support (extends VS Code's native support)
+    "editorconfig.editorconfig",
+    // GitHub Actions workflow schema validation and IntelliSense
+    "github.vscode-github-actions",
+    // PlantUML diagram preview (used in docs/)
+    "jebbs.plantuml",
+    // XML language support (used for .csproj, .props, .config, etc.)
+    "redhat.vscode-xml",
+    // YAML schema validation and IntelliSense (GitHub Actions, docker-compose)
+    "redhat.vscode-yaml",
+    // Markdown formatting (table auto-format, list continuation, TOC)
+    "yzhang.markdown-all-in-one"
+  ]
+}

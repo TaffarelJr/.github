@@ -1,10 +1,137 @@
 #───────────────────────────────────────────────────────────────────────────────
+# Agents
+# https://github.com/github/gitignore/blob/main/Global/Agents.gitignore
+#───────────────────────────────────────────────────────────────────────────────
+
+# Some common agent instruction and project configuration files are listed
+# below as commented-out examples. They are often intentionally committed and
+# shared with a team, so only uncomment them if they are local-only in your
+# project.
+
+# GEMINI.md
+# WARP.md
+# CRUSH.md
+# QWEN.md
+
+# OpenAI Codex
+# AGENTS.md
+# .codex/
+
+# Aider
+.aider.input.history
+.aider.chat.history.md
+.aider.llm.history
+.aider.tags.cache.v*
+# .aiderignore
+
+# Claude Code
+.claude/*.local.json
+.claude/**/*.log
+CLAUDE.local.md
+# .claude/
+
+# Gemini CLI
+gemini-debug.log
+.gemini-clipboard/
+# .gemini/
+
+# Cursor AI
+# .cursorrules
+# .cursor/
+# .cursor.json
+# .cursor-settings.yaml
+
+# Continue
+# .continue/
+# .continuerc.json
+
+# Cline
+# .cline/
+# .clinerules
+# cline.json
+
+# Other agent/editor project config
+# .warp/
+# .crush/
+# .codeium/
+# .deepseek/
+# .amazon-codewhisperer/
+# .tabnineignore
+# .tabnine/
+
+# GitHub Copilot
+# .github/copilot-instructions.md
+
+# Windsurf Editor
+# .windsurfrules
+# .windsurf/
+
+# Replit AI Development
+# .replit
+# replit.nix
+
+#───────────────────────────────────────────────────────────────────────────────
+# Backup
+# https://github.com/github/gitignore/blob/main/Global/Backup.gitignore
+#───────────────────────────────────────────────────────────────────────────────
+
+# Generic backup files
+*.bak
+*.back
+*.backup
+
+# Norton Ghost backup files
+*.gho
+
+# Generic original files
+*.ori
+*.orig
+*.original
+
+# Generic temporary files
+*.tmp
+*.temp
+*.temporary
+
+#───────────────────────────────────────────────────────────────────────────────
+# Cursor
+# https://github.com/github/gitignore/blob/main/Global/Cursor.gitignore
+#───────────────────────────────────────────────────────────────────────────────
+
+.cursorignore
+.cursorindexingignore
+
+#───────────────────────────────────────────────────────────────────────────────
 # Diff
 # https://github.com/github/gitignore/blob/main/Global/Diff.gitignore
 #───────────────────────────────────────────────────────────────────────────────
 
 *.patch
 *.diff
+
+#───────────────────────────────────────────────────────────────────────────────
+# GitHub Pages
+# https://github.com/github/gitignore/blob/main/GitHubPages.gitignore
+#───────────────────────────────────────────────────────────────────────────────
+
+# This .gitignore is appropriate for repositories deployed to GitHub Pages and using
+# a Gemfile as specified at https://github.com/github/pages-gem#conventional
+
+# Basic Jekyll gitignores (synchronize to Jekyll.gitignore)
+_site/
+.sass-cache/
+.jekyll-cache/
+.jekyll-metadata
+
+# Additional Ruby/bundler ignore for when you run: bundle install
+/vendor
+
+# Specific ignore for GitHub Pages
+# GitHub Pages will always use its own deployed version of pages-gem
+# This means GitHub Pages will NOT use your Gemfile.lock and therefore it is
+# counterproductive to check this file into the repository.
+# Details at https://github.com/github/pages-gem/issues/768
+Gemfile.lock
 
 #───────────────────────────────────────────────────────────────────────────────
 # JetBrains
@@ -76,7 +203,8 @@ atlassian-ide-plugin.xml
 
 # SonarLint plugin
 .idea/sonarlint/
-.idea/sonarlint.xml # see https://community.sonarsource.com/t/is-the-file-idea-idea-idea-sonarlint-xml-intended-to-be-under-source-control/121119
+# see https://community.sonarsource.com/t/is-the-file-idea-idea-idea-sonarlint-xml-intended-to-be-under-source-control/121119
+.idea/sonarlint.xml
 
 # Crashlytics plugin (for Android Studio and IntelliJ)
 com_crashlytics_export_strings.xml
@@ -95,6 +223,31 @@ http-client.private.env.json
 .idea/.cache/.Apifox_Helper
 .idea/ApifoxUploaderProjectSetting.xml
 
+# Github Copilot persisted session migrations, see: https://github.com/microsoft/copilot-intellij-feedback/issues/712#issuecomment-3322062215
+.idea/**/copilot.data.migration.*.xml
+
+#───────────────────────────────────────────────────────────────────────────────
+# Linux
+# https://github.com/github/gitignore/blob/main/Global/Linux.gitignore
+#───────────────────────────────────────────────────────────────────────────────
+
+*~
+
+# temporary files which can be created if a process still has a handle open of a deleted file
+.fuse_hidden*
+
+# Metadata left by Dolphin file manager, which comes with KDE Plasma
+.directory
+
+# Linux trash folder which might appear on any partition or disk
+.Trash-*
+
+# .nfs files are created when an open file is removed but is still being accessed
+.nfs*
+
+# Log files created by default by the nohup command
+nohup.out
+
 #───────────────────────────────────────────────────────────────────────────────
 # macOS
 # https://github.com/github/gitignore/blob/main/Global/macOS.gitignore
@@ -102,14 +255,15 @@ http-client.private.env.json
 
 # General
 .DS_Store
+.localized
+__MACOSX/
 .AppleDouble
 .LSOverride
-Icon[]
 
-# Thumbnails
+# Resource forks
 ._*
 
-# Files that might appear in the root of a volume
+# Files and directories that might appear in the root of a volume
 .DocumentRevisions-V100
 .fseventsd
 .Spotlight-V100
@@ -117,6 +271,14 @@ Icon[]
 .Trashes
 .VolumeIcon.icns
 .com.apple.timemachine.donotpresent
+.com.apple.timemachine.supported
+.PKInstallSandboxManager
+.PKInstallSandboxManager-SystemSoftware
+.hotfiles.btree
+.vol
+.file
+.disk_label*
+lost+found
 
 # Directories potentially created on remote AFP share
 .AppleDB
@@ -125,6 +287,137 @@ Network Trash Folder
 Temporary Items
 .apdisk
 
+# Mac OS 6 to 9
+Desktop DB
+Desktop DF
+TheFindByContentFolder
+TheVolumeSettingsFolder
+.FBCIndex
+.FBCSemaphoreFile
+.FBCLockFolder
+
+# Quota system
+.quota.group
+.quota.user
+.quota.ops.group
+.quota.ops.user
+
+# TimeMachine
+Backups.backupdb
+.MobileBackups
+.MobileBackups.trash
+MobileBackups.trash
+tmbootpicker.efi
+
+#───────────────────────────────────────────────────────────────────────────────
+# Microsoft Office
+# https://github.com/github/gitignore/blob/main/Global/MicrosoftOffice.gitignore
+#───────────────────────────────────────────────────────────────────────────────
+
+# Word temporary
+~$*.doc*
+~$*.dot*
+
+# Word Auto Backup File
+Backup of *.doc*
+
+# Excel temporary
+~$*.xls*
+
+# Excel Backup File
+*.xlk
+
+# PowerPoint temporary
+~$*.ppt*
+
+# Visio autosave temporary files
+*.~vsd*
+
+#───────────────────────────────────────────────────────────────────────────────
+# OpenSSL
+# https://github.com/github/gitignore/blob/main/community/OpenSSL.gitignore
+#───────────────────────────────────────────────────────────────────────────────
+
+# OpenSSL-related files best not committed
+
+## Certificate Authority
+*.ca
+
+## Certificate
+*.crt
+
+## Certificate Sign Request
+*.csr
+
+## Certificate
+*.der
+
+## Key database file
+*.kdb
+
+## OSCP request data
+*.org
+
+## PKCS #12
+*.p12
+
+## PEM-encoded certificate data
+*.pem
+
+## Random number seed
+*.rnd
+
+## SSLeay data
+*.ssleay
+
+## S/MIME message
+*.smime
+
+#───────────────────────────────────────────────────────────────────────────────
+# Patch
+# https://github.com/github/gitignore/blob/main/Global/Patch.gitignore
+#───────────────────────────────────────────────────────────────────────────────
+
+*.orig
+*.rej
+
+#───────────────────────────────────────────────────────────────────────────────
+# Sublime Text
+# https://github.com/github/gitignore/blob/main/Global/SublimeText.gitignore
+#───────────────────────────────────────────────────────────────────────────────
+
+# Cache files for Sublime Text
+*.tmlanguage.cache
+*.tmPreferences.cache
+*.stTheme.cache
+
+# Workspace files are user-specific
+*.sublime-workspace
+
+# Project files should be checked into the repository, unless a significant
+# proportion of contributors will probably not be using Sublime Text
+# *.sublime-project
+
+# SFTP configuration file
+sftp-config.json
+sftp-config-alt*.json
+
+# Package control specific files
+Package Control.last-run
+Package Control.ca-list
+Package Control.ca-bundle
+Package Control.system-ca-bundle
+Package Control.cache/
+Package Control.ca-certs/
+Package Control.merged-ca-bundle
+Package Control.user-ca-bundle
+oscrypto-ca-bundle.crt
+bh_unicode_properties.cache
+
+# Sublime-github package stores a github token in this file
+# https://packagecontrol.io/packages/sublime-github
+GitHub.sublime-settings
+
 #───────────────────────────────────────────────────────────────────────────────
 # TortoiseGit
 # https://github.com/github/gitignore/blob/main/Global/TortoiseGit.gitignore
@@ -132,6 +425,31 @@ Temporary Items
 
 # Project-level settings
 /.tgitconfig
+
+#───────────────────────────────────────────────────────────────────────────────
+# Vim
+# https://github.com/github/gitignore/blob/main/Global/Vim.gitignore
+#───────────────────────────────────────────────────────────────────────────────
+
+# Swap
+[._]*.s[a-v][a-z]
+# comment out the next line if you don't need vector files
+!*.svg
+[._]*.sw[a-p]
+[._]s[a-rt-v][a-z]
+[._]ss[a-gi-z]
+[._]sw[a-p]
+
+# Session
+Session.vim
+Sessionx.vim
+
+# Temporary
+.netrwhist
+# Auto-generated tag files
+tags
+# Persistent undo
+[._]*.un~
 
 #───────────────────────────────────────────────────────────────────────────────
 # Visual Studio Code
