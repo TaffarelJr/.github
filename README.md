@@ -14,60 +14,63 @@ title: Personal GitHub Repo Structure
 
 flowchart TB
 
-  subgraph subGH [" "]
-    gh(**.github**
+  subgraph row1 [" "]
+    github(**.github**
     repo)
 
-    noteGH[This contains core files
-    to be referenced by
-    or synced to other repos.]
+    githubNote[Contains core files
+    to be included in all repos.]
   end
 
-  subgraph subT [" "]
-    T1(**.template-&lt;type&gt;**
+  subgraph row2 [" "]
+    templateA(**.template-a**
     repo)
 
-    T2(**.template-&lt;type&gt;**
+    repo1(repo 1)
+
+    templateB(**.template-b**
     repo)
 
-    noteT[These define more specific
-    default files and structures
-    for different repo types.]
+    templateNote[Templates contain
+    additional default files
+    for specific project types.]
   end
 
-  subgraph subR [" "]
-    R1(**&lt;name&gt;**
-    repo)
+  subgraph row3 [" "]
+    repo2(repo 2)
+    repo3(repo 3)
+    repo4(repo 4)
 
-    R2(**&lt;name&gt;**
+    templateC(**.template-c**
     repo)
-
-    R3(**&lt;name&gt;**
-    repo)
-
-    R4(**&lt;name&gt;**
-    repo)
-
-    noteR[These are the actual repos
-    where projects live.]
   end
+
+  subgraph row4 [" "]
+    repo5(repo 5)
+  end
+
+  classDef row opacity:0
+  class row1,row2,row3,row4 row
 
   classDef current fill:#E68A39,color:#000000
-  class gh current
-
-  classDef sub opacity:0
-  class subGH,subT,subR sub
+  class github current
 
   classDef note fill:#FFFFDD,color:#000000
-  class noteGH,noteT,noteR note
+  class githubNote,templateNote note
 
-  gh --> T1
-  gh --> T2
+  classDef repo fill:#34C3EB,color:#000000
+  class repo1,repo2,repo3,repo4,repo5 repo
 
-  T1 --> R1
-  T1 --> R2
-  T2 --> R3
-  T2 --> R4
+  github --> templateA
+  github --> repo1
+  github --> templateB
+
+  templateA --> repo2
+  templateA --> repo3
+  templateB --> repo4
+  templateB --> templateC
+
+  templateC --> repo5
 ```
 
 #### Table of Contents <!-- omit from toc -->
@@ -88,43 +91,43 @@ because most files need repo-specific customization.
 
 ### [Community Health][ghComHealth]
 
-| File                                 | Exists only in</br>.github repo | Overridden in<br/>template repo | Notes                    |
-| :----------------------------------- | :-----------------------------: | :-----------------------------: | :----------------------- |
+| File                                | Exists only in</br>.github repo | Overridden in<br/>template repo | Notes                    |
+| :---------------------------------- | :-----------------------------: | :-----------------------------: | :----------------------- |
 | 📁[.github/][githubFolder]           |                                 |                                 |                          |
-| &nbsp;├─📄[CODEOWNERS][codeOwnFile]  |               N/A               |               ✅                |                          |
-| &nbsp;└─📄[FUNDING.yml][fundingFile] |               ✅                |                                 |                          |
-| 📄[CODE_OF_CONDUCT.md][cocFile]      |                                 |               ✅                | Linked to by other files |
-| 📄[CONTRIBUTING.md][contribFile]     |                                 |               ✅                | Links to other files     |
+| &nbsp;├─📄[CODEOWNERS][codeOwnFile]  |               N/A               |                ✅                |                          |
+| &nbsp;└─📄[FUNDING.yml][fundingFile] |                ✅                |                                 |                          |
+| 📄[CODE_OF_CONDUCT.md][cocFile]      |                                 |                ✅                | Linked to by other files |
+| 📄[CONTRIBUTING.md][contribFile]     |                                 |                ✅                | Links to other files     |
 | 📄GOVERNANCE.md                      |                —                |                —                | Not implemented          |
-| 📄[LICENSE][licenseFile]             |               N/A               |               ✅                |                          |
-| 📄[SECURITY.md][securityFile]        |                                 |               ✅                | Links to GitHub repo     |
-| 📄[SUPPORT.md][supportFile]          |                                 |               ✅                | Links to other files     |
+| 📄[LICENSE][licenseFile]             |               N/A               |                ✅                |                          |
+| 📄[SECURITY.md][securityFile]        |                                 |                ✅                | Links to GitHub repo     |
+| 📄[SUPPORT.md][supportFile]          |                                 |                ✅                | Links to other files     |
 
 ### [GitHub Configuration][ghTemplates]
 
-| Template                                                          | Exists only in</br>.github repo | Overridden in<br/>template repo | Description                                     |
-| :---------------------------------------------------------------- | :-----------------------------: | :-----------------------------: | :---------------------------------------------- |
+| Template                                                         | Exists only in</br>.github repo | Overridden in<br/>template repo | Description                                     |
+| :--------------------------------------------------------------- | :-----------------------------: | :-----------------------------: | :---------------------------------------------- |
 | 📁[.github/][githubFolder]                                        |                                 |                                 |                                                 |
 | &nbsp;├─📁DISCUSSION_TEMPLATE/                                    |                —                |                —                | Not implemented                                 |
-| &nbsp;├─📁[ISSUE_TEMPLATE/][issueFormsFolder]                     |                                 |               ✅                | Contains [GitHub Issue forms][ghIssueForms]     |
-| &nbsp;│&nbsp;&nbsp;&nbsp;&nbsp;└─📄[config.yml][issueChooserFile] |               ✅                |                                 | [GitHub Issue template chooser][ghIssueChooser] |
-| &nbsp;├─📄[copilot-instructions.md][copilotFile]                  |               N/A               |               ✅                | [Copilot configuration][ghCopilot]              |
-| &nbsp;├─📄[dependabot.yml][dependabotFile]                        |               N/A               |               ✅                | [Dependabot configuration][ghDependabot]        |
-| &nbsp;├─📄[pull_request_template.md][prTemplateFile]              |                                 |               ✅                | [GitHub Pull Request template][ghPRTemplate]    |
-| &nbsp;└─📄[settings.yml][settingsFile]                            |               N/A               |               ✅                | [Repo configuration][ghSettings]                |
+| &nbsp;├─📁[ISSUE_TEMPLATE/][issueFormsFolder]                     |                                 |                ✅                | Contains [GitHub Issue forms][ghIssueForms]     |
+| &nbsp;│&nbsp;&nbsp;&nbsp;&nbsp;└─📄[config.yml][issueChooserFile] |                ✅                |                                 | [GitHub Issue template chooser][ghIssueChooser] |
+| &nbsp;├─📄[copilot-instructions.md][copilotFile]                  |               N/A               |                ✅                | [Copilot configuration][ghCopilot]              |
+| &nbsp;├─📄[dependabot.yml][dependabotFile]                        |               N/A               |                ✅                | [Dependabot configuration][ghDependabot]        |
+| &nbsp;├─📄[pull_request_template.md][prTemplateFile]              |                                 |                ✅                | [GitHub Pull Request template][ghPRTemplate]    |
+| &nbsp;└─📄[settings.yml][settingsFile]                            |               N/A               |                ✅                | [Repo configuration][ghSettings]                |
 
 ### [GitHub Workflows][ghWorkflows]
 
-| Workflow                                                                    | Description                                               |
-| :-------------------------------------------------------------------------- | :-------------------------------------------------------- |
+| Workflow                                                                   | Description                                               |
+| :------------------------------------------------------------------------- | :-------------------------------------------------------- |
 | 📁[.github/][githubFolder]                                                  |                                                           |
 | &nbsp;└─📁[workflows/][workflowFolder]                                      |                                                           |
 | &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;└─📄[Template Sync][syncWorkflow] | Synchronizes files from a template repo to a derived repo |
 
 ### Other Files
 
-| File                                  | Description                                      |
-| :------------------------------------ | :----------------------------------------------- |
+| File                                 | Description                                      |
+| :----------------------------------- | :----------------------------------------------- |
 | 📁[.vscode/][vsCodeFolder]            | Contains VSCode settings                         |
 | 📁[docs/][docsFolder]                 | Contains documentation                           |
 | 📄[\_checklist.md][checklistFile]     | New template repo checklist                      |

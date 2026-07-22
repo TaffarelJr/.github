@@ -24,8 +24,6 @@
 *.PDF      diff=astextplain
 *.rtf      diff=astextplain
 *.RTF      diff=astextplain
-*.md       text diff=markdown
-*.mdx      text diff=markdown
 *.tex      text diff=tex
 *.adoc     text
 *.textile  text
@@ -61,7 +59,6 @@
 # These are explicitly windows files and should use crlf
 *.bat      text eol=crlf
 *.cmd      text eol=crlf
-*.ps1      text eol=crlf
 
 # Serialisation
 *.json     text
@@ -116,8 +113,25 @@ devcontainer.json linguist-language=JSON-with-Comments
 # https://github.com/gitattributes/gitattributes/blob/master/Markdown.gitattributes
 #───────────────────────────────────────────────────────────────────────────────
 
-# Apply override to all files in the directory
-*.md linguist-detectable
+*.md       text diff=markdown linguist-detectable
+*.mdx      text diff=markdown
+*.markdown text diff=markdown linguist-detectable
+
+#───────────────────────────────────────────────────────────────────────────────
+# PowerShell
+# https://github.com/gitattributes/gitattributes/blob/master/PowerShell.gitattributes
+#───────────────────────────────────────────────────────────────────────────────
+
+# Source files
+# ============
+*.ps1      text eol=crlf
+*.ps1x     text eol=crlf
+*.psm1     text eol=crlf
+*.psd1     text eol=crlf
+*.ps1xml   text eol=crlf
+*.pssc     text eol=crlf
+*.psrc     text eol=crlf
+*.cdxml    text eol=crlf
 
 #───────────────────────────────────────────────────────────────────────────────
 # Visual Studio Code
@@ -126,3 +140,16 @@ devcontainer.json linguist-language=JSON-with-Comments
 
 # Fix syntax highlighting on GitHub to allow comments
 .vscode/*.json linguist-language=JSON-with-Comments
+
+#───────────────────────────────────────────────────────────────────────────────
+# VIM
+# https://github.com/gitattributes/gitattributes/blob/master/Vim.gitattributes
+#───────────────────────────────────────────────────────────────────────────────
+
+# Vim on Linux works with LF only, Vim on Windows works with both LF and CRLF
+
+# Source files
+# ============
+*.vim text eol=lf
+.vimrc text eol=lf
+.gvimrc text eol=lf
