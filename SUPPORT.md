@@ -19,7 +19,7 @@ Spending the extra time up front can help save everyone time in the long run.
 Here are some tips:
 
 - First, [talk to a duck][rubberDuck]!
-- Don’t fall for the [XY problem][xyProblem]
+- Don't fall for the [XY problem][xyProblem]
 - Search to find out if a similar question has been asked
   - The [Documentation][docsFolder] and [Wiki][ghWiki] are great places to start
   - A [Discussion][ghDiscussions] or [Issue][ghIssues]
@@ -29,9 +29,9 @@ Here are some tips:
   - Is there something in particular you want to do?
   - What problem are you encountering,
     and what steps have you taken to try to fix it?
-  - Is there a concept you don’t understand?
+  - Is there a concept you don't understand?
 - Provide sample code, such as a [CodeSandbox][codeSandbox] or video, if possible
-- Screenshots can help, but if there’s important text
+- Screenshots can help, but if there's important text
   such as code or error messages in them,
   please also provide them as text to make them more searchable
 - The more time you put into asking your question, the better we can help you!
