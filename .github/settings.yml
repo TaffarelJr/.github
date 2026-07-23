@@ -132,47 +132,7 @@ rulesets:
           name: Allowed characters
           negate: false
           operator: regex
-          pattern: "^[\\w/-]+$"
-
-  - name: Use Conventional Commits
-    target: branch
-    enforcement: active
-    bypass_actors: []
-    conditions:
-      ref_name:
-        include: [~DEFAULT_BRANCH]
-        exclude: []
-    rules:
-      - type: commit_message_pattern
-        parameters:
-          name:
-          negate: false
-          operator: regex
-          pattern: "^(build|chore|ci|docs|feat|fix|infra|perf|refactor|revert|style|test){1}(\\([\\w\\-\\.]+\\))?(!)?: ([\\w ])+([\\s\\S]*)"
-
-  - name: Review each PR
-    target: branch
-    enforcement: active
-    bypass_actors:
-      - actor_id: 5 # Repository admin
-        actor_type: RepositoryRole
-        bypass_mode: pull_request
-    conditions:
-      ref_name:
-        include: [~DEFAULT_BRANCH]
-        exclude: []
-    rules:
-      - type: pull_request
-        parameters:
-          required_approving_review_count: 0
-          dismiss_stale_reviews_on_push: true
-          require_code_owner_review: true
-          require_last_push_approval: false
-          required_review_thread_resolution: true
-      - type: copilot_code_review
-        parameters:
-          review_on_push: true
-          review_draft_pull_requests: true
+          pattern: "\\A[\\w/-]+\\z"
 
   - name: Protect default branch history
     target: branch
@@ -199,6 +159,30 @@ rulesets:
       - type: deletion
       - type: non_fast_forward
 
+  - name: Review each PR
+    target: branch
+    enforcement: active
+    bypass_actors:
+      - actor_id: 5 # Repository admin
+        actor_type: RepositoryRole
+        bypass_mode: pull_request
+    conditions:
+      ref_name:
+        include: [~DEFAULT_BRANCH]
+        exclude: []
+    rules:
+      - type: pull_request
+        parameters:
+          required_approving_review_count: 0
+          dismiss_stale_reviews_on_push: true
+          require_code_owner_review: true
+          require_last_push_approval: false
+          required_review_thread_resolution: true
+      - type: copilot_code_review
+        parameters:
+          review_on_push: true
+          review_draft_pull_requests: true
+
   - name: Status checks must pass
     target: branch
     enforcement: active
@@ -224,6 +208,22 @@ rulesets:
             - tool: CodeQL
               security_alerts_threshold: high_or_higher
               alerts_threshold: errors
+
+  - name: Use Conventional Commits
+    target: branch
+    enforcement: active
+    bypass_actors: []
+    conditions:
+      ref_name:
+        include: [~DEFAULT_BRANCH]
+        exclude: []
+    rules:
+      - type: commit_message_pattern
+        parameters:
+          name: Conventional Commits
+          negate: false
+          operator: regex
+          pattern: "\\A(build|chore|ci|docs|feat|fix|infra|perf|refactor|revert|style|test){1}(\\([\\w\\-\\.]+\\))?(!)?: ([\\w ])+([\\s\\S]*)"
 
 #───────────────────────────────────────────────────────────────────────────────
 # Issues → Labels
