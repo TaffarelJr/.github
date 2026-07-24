@@ -118,21 +118,23 @@ branches:
 # https://github.com/github/ruleset-recipes
 #───────────────────────────────────────────────────────────────────────────────
 rulesets:
-  - name: Branch names must be OS-compatible
-    target: branch
-    enforcement: active
-    bypass_actors: []
-    conditions:
-      ref_name:
-        include: [~ALL]
-        exclude: []
-    rules:
-      - type: branch_name_pattern
-        parameters:
-          name: Allowed characters
-          negate: false
-          operator: regex
-          pattern: "\\A[\\w/-]+\\z"
+  # Metadata-restriction rulesets (branch names, commit messages) apply only on
+  # org-owned repos, not personal accounts. Un-comment on an org.
+  # - name: Branch names must be OS-compatible
+  #   target: branch
+  #   enforcement: active
+  #   bypass_actors: []
+  #   conditions:
+  #     ref_name:
+  #       include: [~ALL]
+  #       exclude: []
+  #   rules:
+  #     - type: branch_name_pattern
+  #       parameters:
+  #         name: Allowed characters
+  #         negate: false
+  #         operator: regex
+  #         pattern: '^[\w/-]+$'
 
   - name: Protect default branch history
     target: branch
@@ -209,21 +211,23 @@ rulesets:
               security_alerts_threshold: high_or_higher
               alerts_threshold: errors
 
-  - name: Use Conventional Commits
-    target: branch
-    enforcement: active
-    bypass_actors: []
-    conditions:
-      ref_name:
-        include: [~DEFAULT_BRANCH]
-        exclude: []
-    rules:
-      - type: commit_message_pattern
-        parameters:
-          name: Conventional Commits
-          negate: false
-          operator: regex
-          pattern: "\\A(build|chore|ci|docs|feat|fix|infra|perf|refactor|revert|style|test){1}(\\([\\w\\-\\.]+\\))?(!)?: ([\\w ])+([\\s\\S]*)"
+  # Metadata-restriction rulesets (branch names, commit messages) apply only on
+  # org-owned repos, not personal accounts. Un-comment on an org.
+  # - name: Use Conventional Commits
+  #   target: branch
+  #   enforcement: active
+  #   bypass_actors: []
+  #   conditions:
+  #     ref_name:
+  #       include: [~DEFAULT_BRANCH]
+  #       exclude: []
+  #   rules:
+  #     - type: commit_message_pattern
+  #       parameters:
+  #         name: Conventional Commits
+  #         negate: false
+  #         operator: regex
+  #         pattern: '^(build|chore|ci|docs|feat|fix|infra|perf|refactor|revert|style|test)(\([\w.-]+\))?(!)?: ([\w ])+([\s\S]*)'
 
 #───────────────────────────────────────────────────────────────────────────────
 # Issues → Labels
