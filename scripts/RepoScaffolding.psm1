@@ -3,17 +3,19 @@
     RepoScaffolding.psm1
 
     Shared helpers for creating new repos derived from a template repo.
-    Imported by the executable scripts in this same folder:
-        - New-TemplateRepo.ps1  (create a new .template-<type> repo)
-        - New-Repo.ps1          (create a new "leaf" code repo)
+    Imported by New-Repo.ps1 in this same folder, which takes -Kind Template|Code.
 
-    The scripts are meant to be run FROM the template repo they derive from.
+    New-Repo.ps1 is meant to be run FROM the template repo you are deriving from.
     Get-ScaffoldContext discovers that source repo from the script location,
     so nothing here is hard-coded to a specific owner/repo.
 
+    KEEP THIS FILE IDENTICAL AT EVERY LAYER. It is inherited by merge, so any per-layer
+    edit becomes a conflict on every future template change. Layer-specific behaviour
+    belongs in an optional ScaffoldLayer.psm1 alongside this file.
+
     Design goals
     ------------
-    * Thin scripts: every step is a helper here; scripts mostly just call them.
+    * Thin script: every step is a helper here; the script mostly just calls them.
     * Idempotent / resumable: re-running on a repo that's already (partly) set up
       verifies existing state and only does what's missing. A fully-scaffolded repo
       is a no-op - it never overwrites changes made after scaffolding.
@@ -350,24 +352,55 @@ function Get-ScaffoldContext {
     }
 }
 
-function Confirm-ScaffoldGhAccount {
-    <# Switch gh to the admin account (if given) and verify admin access. #>
+function Use-ScaffoldGhAccount {
+    <#
+        Point every `gh` call in THIS PROCESS at $GhAccount, then verify it really has admin
+        access - without changing which account is active on the machine.
+
+        This borrows that account's stored token (`gh auth token --user`) into $env:GH_TOKEN,
+        which takes precedence over the keyring for this process and its children. That matters
+        when you keep a work account and a personal account logged in side by side: `gh auth
+        switch` would silently repoint every other shell too, so scaffolding must not rely on
+        whichever account happens to be active.
+
+        Call Reset-ScaffoldGhAccount when finished to leave the machine exactly as found.
+    #>
     param([string]$GhAccount, [Parameter(Mandatory)][string]$ProbeOwnerRepo)
 
     if ($GhAccount) {
-        Write-Info "Switching gh to account '$GhAccount'..."
-        gh auth switch --user $GhAccount 2>$null | Out-Null   # no Assert: may already be active
+        $token = gh auth token --user $GhAccount 2>$null
+        if ($LASTEXITCODE -ne 0 -or -not $token) {
+            $global:LASTEXITCODE = 0
+            throw ("No stored credentials for gh account '$GhAccount'. Run: gh auth login  " +
+                '(it can coexist with your other accounts; nothing needs to be logged out).')
+        }
+        $global:LASTEXITCODE = 0
+        $env:GH_TOKEN = $token.Trim()
+        Write-Ok "Using gh account '$GhAccount' for this run only (active account untouched)"
     }
-    $active = (gh api user --jq .login 2>$null)
-    if (-not $active) { throw "Not authenticated with gh. Run 'gh auth login' first." }
 
+    $active = (gh api user --jq .login 2>$null)
+    if (-not $active) { $global:LASTEXITCODE = 0; throw "Not authenticated with gh. Run 'gh auth login' first." }
+    $global:LASTEXITCODE = 0
+
+    # Admin probe: being logged in is not the same as having the scopes/permissions we need.
     gh api "repos/$ProbeOwnerRepo/actions/permissions/workflow" --silent 2>$null | Out-Null
-    if ($LASTEXITCODE -ne 0) {
-        throw ("Account '$active' lacks admin access to '$ProbeOwnerRepo' (admin API probe failed). " +
-            "Switch to the owning account (-GhAccount) and retry. If it's a scope issue, run: " +
-            "gh auth refresh -h github.com -s admin:repo_hook,workflow,security_events")
+    $ok = ($LASTEXITCODE -eq 0)
+    $global:LASTEXITCODE = 0
+    if (-not $ok) {
+        throw ("Account '$active' lacks admin access to '$ProbeOwnerRepo'. Pass -GhAccount for the " +
+            'owning account, or if it is a scope issue run: ' +
+            'gh auth refresh -h github.com -s admin:repo_hook,workflow,security_events')
     }
-    Write-Ok "Admin access confirmed (gh account: $active)."
+    Write-Ok "Admin access confirmed (gh account: $active)"
+}
+
+function Reset-ScaffoldGhAccount {
+    <# Drop the borrowed token so the shell goes back to its normal active account. #>
+    if ($env:GH_TOKEN) {
+        Remove-Item Env:GH_TOKEN -ErrorAction SilentlyContinue
+        Write-Info 'Released the borrowed gh token'
+    }
 }
 
 #───────────────────────────────────────────────────────────────────────────────
@@ -876,9 +909,22 @@ function Write-ScaffoldSettings {
         "  name: $Name"
     ) | ForEach-Object { $lines.Add($_) }
     if ($Kind -eq 'Code') {
-        $lines.Add('')
-        $lines.Add('  # Code repo: not a template (override the inherited value)')
-        $lines.Add('  is_template: false')
+        @(
+            ''
+            '  # Code repo: not a template (override the inherited value)'
+            '  is_template: false'
+            ''
+            $sep
+            '  # Settings -> General -> Pull Requests'
+            $sep
+            ''
+            '  # Template layers rebase-merge so their history stays linear and no merge commits'
+            '  # propagate downstream. A code repo is derived FROM but never derived from, so it'
+            '  # can merge normally: rewrite history within a PR, then merge it as-is.'
+            '  allow_merge_commit: true'
+            '  allow_squash_merge: false'
+            '  allow_rebase_merge: false'
+        ) | ForEach-Object { $lines.Add($_) }
     }
     ($lines -join "`r`n") + "`r`n" | Set-Content -NoNewline -Encoding utf8 $settingsPath
     Write-Ok "Wrote .github/settings.yml ($Kind)"
@@ -1163,7 +1209,8 @@ Export-ModuleMember -Function @(
     'Register-ScaffoldManualSettings'
     'Show-ScaffoldManualChecklist'
     'Get-ScaffoldContext'
-    'Confirm-ScaffoldGhAccount'
+    'Use-ScaffoldGhAccount'
+    'Reset-ScaffoldGhAccount'
     'New-ScaffoldRepo'
     'Set-ScaffoldActionsPermissions'
     'Enable-ScaffoldPrivateVulnReporting'

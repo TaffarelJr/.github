@@ -85,7 +85,7 @@ $bound = $PSBoundParameters
 
 # Render any terminating error as a readable banner (which step, message, stack) instead of
 # a raw PowerShell dump, then stop with a non-zero exit code.
-trap { Show-ScaffoldFailure -ErrorRecord $_; exit 1 }
+trap { Reset-ScaffoldGhAccount; Show-ScaffoldFailure -ErrorRecord $_; exit 1 }
 
 # ── Step 0: context + inputs ──────────────────────────────────────────────────
 Write-ScaffoldStep '0' 'Prerequisites & inputs'
@@ -117,8 +117,8 @@ Write-ScaffoldField ''                $ctx.SourceRoot
 Write-ScaffoldField "New $($Kind.ToLowerInvariant()) repo" $ownerRepo
 Write-ScaffoldField 'Clone to'        $targetPath
 
-$GhAccount = Resolve-ScaffoldValue -Name GhAccount -Bound $bound -Value $GhAccount -Prompt "gh account that admins '$owner' (blank = use current)"
-Confirm-ScaffoldGhAccount -GhAccount $GhAccount -ProbeOwnerRepo $ctx.SourceOwnerRepo
+$GhAccount = Resolve-ScaffoldValue -Name GhAccount -Bound $bound -Value $GhAccount -Prompt "gh account that admins '$owner'" -Default $owner
+Use-ScaffoldGhAccount -GhAccount $GhAccount -ProbeOwnerRepo $ctx.SourceOwnerRepo
 
 $Description = Resolve-ScaffoldValue -Name Description -Bound $bound -Value $Description -Prompt 'Repo description (single line)'
 $Homepage = Resolve-ScaffoldValue -Name Homepage    -Bound $bound -Value $Homepage    -Prompt 'Homepage URL (optional - blank to omit)'
@@ -209,6 +209,7 @@ $wsFile = Write-ScaffoldWorkspaceFile -RepoPath $targetPath -RepoName $repo -Cha
 Start-ScaffoldVSCode   -Target $wsFile
 
 # ── Manual follow-up checklist ────────────────────────────────────────────────
+Reset-ScaffoldGhAccount
 Register-ScaffoldManualSettings -OwnerRepo $ownerRepo
 Show-ScaffoldManualChecklist    -OwnerRepo $ownerRepo
 Show-ScaffoldSummary
