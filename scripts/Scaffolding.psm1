@@ -11,7 +11,7 @@
 
     KEEP THIS FILE IDENTICAL AT EVERY LAYER. It is inherited by merge, so any per-layer
     edit becomes a conflict on every future template change. Layer-specific behaviour
-    belongs in an optional Template.psm1 alongside this file (see below).
+    belongs in additive Scaffolding-<NN>-<slug>.ps1 step files alongside it (see below).
 
     Design goals
     ------------
@@ -41,31 +41,41 @@ $script:ScaffoldOwner = 'TaffarelJr'
 function Get-ScaffoldOwner { return $script:ScaffoldOwner }
 
 #───────────────────────────────────────────────────────────────────────────────
-# Per-layer customization hook
+# Per-layer customization steps
 #───────────────────────────────────────────────────────────────────────────────
 <#
-    Every layer may drop a Template.psm1 next to this file exposing ONE entry point:
+    Each layer contributes its own scaffolding steps as ADDITIVE files next to this one:
 
-        function Invoke-TemplateScaffold {
-            param([hashtable]$Context)   # RepoPath, RepoName, Kind, SourceOwnerRepo, OwnerRepo
-            Rename-ScaffoldToken -RepoPath $Context.RepoPath -From 'Placeholder' -To ...
-            # ...whatever else this template needs, in whatever order
-        }
+        Scaffolding-10-dotnet.ps1     added by .template-dotnet
+        Scaffolding-20-nuget.ps1      added by .template-nuget
+        Scaffolding-20-winui.ps1      added by .template-winui   (sibling; never sees nuget's)
 
-    It is imported HERE rather than from New-Repo.ps1, so the orchestrator stays byte-identical
-    at every layer too. Importing from inside this module also keeps the layer's functions
-    private to this module, so nothing leaks into the caller's session.
+    Naming convention: Scaffolding-<NN>-<slug>.ps1, run in filename order, so <NN> is the layer
+    tier. Each file is a plain script taking -Context:
 
-    One entry point (not a set of named phases) is deliberate: a layer then only ever edits
-    Template.psm1, and can add as many private helpers as it likes without touching any shared
-    file. Base layers with nothing to customize simply omit the file.
+        param([hashtable]$Context)   # RepoPath, RepoName, Kind, OwnerRepo, SourceOwnerRepo
+        Rename-ScaffoldToken -RepoPath $Context.RepoPath -From 'Placeholder' -To $Context.RepoName
+
+    WHY MANY FILES RATHER THAN ONE Template.psm1: with a single fixed name, every layer would
+    have to EDIT its parent's copy to append its own steps - guaranteeing a merge conflict on
+    that file forever, and forcing the child to re-state the parent's logic. With one file per
+    layer, a child ADDS a file and never touches an inherited one, so template merges stay
+    clean and each layer owns exactly what it wrote.
+
+    These are read from the SOURCE template (wherever New-Repo.ps1 is running from), not from
+    the new repo - so a leaf still gets its parent's renames even though scaffolding deletes
+    the leaf's own scripts/ folder.
+
+    A layer needing a real library can add its own .psm1 and import it from its step script.
+    Base layers with nothing to customize simply contribute no file.
 #>
-$script:TemplateModule = Join-Path $PSScriptRoot 'Template.psm1'
-if (Test-Path $script:TemplateModule) { Import-Module $script:TemplateModule -Force }
 
-function Test-ScaffoldLayerHook {
-    <# True when this layer supplies a Template.psm1 with the expected entry point. #>
-    return [bool](Get-Command Invoke-TemplateScaffold -ErrorAction SilentlyContinue)
+function Get-ScaffoldLayerStep {
+    <# The layer step scripts contributed by this template chain, in execution order. #>
+    # Filter on the prefix then check the extension explicitly: a Windows -Filter of '*.ps1'
+    # can also match '.psm1', which would try to execute the shared module as a step.
+    return @(Get-ChildItem -Path $PSScriptRoot -Filter 'Scaffolding-*' -File -ErrorAction SilentlyContinue |
+            Where-Object { $_.Extension -eq '.ps1' } | Sort-Object Name)
 }
 
 # Files that exist ONLY in the base .github repo. Single source of truth: the same table
@@ -1180,8 +1190,9 @@ function Invoke-ScaffoldLayerCommit {
         [Parameter(Mandatory)][hashtable]$Context,
         [string]$TemplateBranch = 'main'
     )
-    if (-not (Test-ScaffoldLayerHook)) {
-        Write-Skip 'No Template.psm1 at this layer - nothing template-specific to apply'
+    $steps = Get-ScaffoldLayerStep
+    if (-not $steps) {
+        Write-Skip 'No Scaffolding-*.ps1 steps in this chain - nothing template-specific to apply'
         return
     }
     $message = 'chore: apply template-specific customizations'
@@ -1200,7 +1211,10 @@ function Invoke-ScaffoldLayerCommit {
     }
     $before = @(& $statusPaths)
 
-    Invoke-TemplateScaffold -Context $Context
+    foreach ($step in $steps) {
+        Write-Info "Running $($step.Name)"
+        & $step.FullName -Context $Context
+    }
 
     $after = @(& $statusPaths)
     $touched = @($after | Where-Object { $_ -notin $before })
@@ -1300,7 +1314,7 @@ Export-ModuleMember -Function @(
     'Confirm-ScaffoldProceed'
     'Invoke-ScaffoldGatedCommit'
     'Invoke-ScaffoldLayerCommit'
-    'Test-ScaffoldLayerHook'
+    'Get-ScaffoldLayerStep'
     'Resolve-ScaffoldValue'
     'Set-ScaffoldSkipPrompts'
     'Get-ScaffoldActivity'

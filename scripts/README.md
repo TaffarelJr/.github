@@ -7,7 +7,7 @@ Each one creates a new repo on GitHub, and clones it next to this one locally.
 | --------------------- | -------------------------------------------------------- |
 | 📄 `Scaffolding.psm1`  | Shared helper module — one function per step             |
 | 📄 `New-Repo.ps1`      | Create a new repo — `-Kind Template` or `-Kind Code`     |
-| 📄 `Template.psm1`     | _Optional, per layer_ — this template's own scaffolding  |
+| 📄 `Scaffolding-*.ps1` | _Optional, one per layer_ — that layer's own steps        |
 
 `-Kind` drives the only two differences: a **Template** keeps `scripts/` so it can spawn its
 own children, while **Code** removes `scripts/` and sets `is_template: false`.
@@ -105,28 +105,41 @@ it verifies what's done and picks up where it left off.
   clean. Everything layer-specific goes in `Template.psm1` instead — the same idea as
   `_extends` for settings: shared logic inherited, deltas declared locally.
 
-### Per-layer customization: `Template.psm1`
+### Per-layer customization: `Scaffolding-<NN>-<slug>.ps1`
 
-A layer that needs its own scaffolding steps adds `scripts/Template.psm1` exposing one
-entry point. `Scaffolding.psm1` imports it automatically if the file exists, and step 7
-calls it:
+Each layer contributes its own steps as an **additive** file — never by editing an
+inherited one:
 
-```powershell
-# .template-dotnet/scripts/Template.psm1
-function Invoke-TemplateScaffold {
-    param([hashtable]$Context)   # RepoPath, RepoName, Kind, OwnerRepo, SourceOwnerRepo
-    Rename-Placeholder -RepoPath $Context.RepoPath -To $Context.RepoName
-    # ...anything else this template needs, in whatever order
-}
-Export-ModuleMember -Function Invoke-TemplateScaffold
+```text
+Scaffolding-10-dotnet.ps1     added by .template-dotnet
+Scaffolding-20-nuget.ps1      added by .template-nuget
+Scaffolding-20-winui.ps1      added by .template-winui   (sibling; never sees nuget's)
 ```
 
-One entry point, not a set of named phases — so a layer only ever edits this one file and
-can add as many private helpers as it likes. Base layers with nothing to customize simply
-omit it (the step reports "nothing template-specific to apply").
+They run in filename order, so `<NN>` is the layer tier. Each is a plain script taking
+`-Context`:
 
-Its changes land in their own commit, `chore: apply template-specific customizations`.
-You don't declare which paths you touch: the module diffs `git status` around the call and
+```powershell
+# .template-dotnet/scripts/Scaffolding-10-dotnet.ps1
+param([hashtable]$Context)   # RepoPath, RepoName, Kind, OwnerRepo, SourceOwnerRepo
+Rename-ScaffoldToken -RepoPath $Context.RepoPath -From 'Placeholder' -To $Context.RepoName
+```
+
+**Why one file per layer rather than one shared file:** with a single fixed name, every
+layer would have to *edit* its parent's copy to append its steps — guaranteeing a merge
+conflict on that file forever, and forcing the child to restate the parent's logic. Adding
+a file instead means template merges stay clean and each layer owns exactly what it wrote.
+
+They're `.ps1` (executed) rather than `.psm1` (imported), which is what avoids two layers
+colliding on the same function name.
+
+Steps are read from the **source** template — wherever `New-Repo.ps1` is running from — so a
+leaf still gets its ancestors' renames even though scaffolding deletes the leaf's own
+`scripts/` folder. A layer needing a real library can add its own `.psm1` and import it from
+its step script.
+
+All their changes land in one commit, `chore: apply template-specific customizations`. You
+don't declare which paths you touch: the module diffs `git status` around the calls and
 stages exactly that set, so unrelated uncommitted work can never be swept in.
 
 ### Settings inheritance

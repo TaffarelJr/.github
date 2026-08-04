@@ -147,6 +147,24 @@ rulesets:
     rules:
       - type: deletion
       - type: non_fast_forward
+
+  # Deliberately its OWN ruleset, not a third rule in the one above.
+  # _extends inheritance is additive: a child can disable a whole named ruleset, but it can
+  # never remove a single rule from one it inherits (nested arrays concatenate). Template
+  # layers need linear history so no merge commits propagate downstream; leaf code repos
+  # merge normally, so they switch this off with:
+  #     rulesets:
+  #       - name: Require linear history
+  #         enforcement: disabled
+  - name: Require linear history
+    target: branch
+    enforcement: active
+    bypass_actors: []
+    conditions:
+      ref_name:
+        include: [~DEFAULT_BRANCH]
+        exclude: []
+    rules:
       - type: required_linear_history
 
   - name: Protect version tags
