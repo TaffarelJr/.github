@@ -1,6 +1,6 @@
 #Requires -Version 7.0
 <#
-    RepoScaffolding.psm1
+    Scaffolding.psm1
 
     Shared helpers for creating new repos derived from a template repo.
     Imported by New-Repo.ps1 in this same folder, which takes -Kind Template|Code.
@@ -11,7 +11,7 @@
 
     KEEP THIS FILE IDENTICAL AT EVERY LAYER. It is inherited by merge, so any per-layer
     edit becomes a conflict on every future template change. Layer-specific behaviour
-    belongs in an optional ScaffoldLayer.psm1 alongside this file.
+    belongs in an optional Template.psm1 alongside this file (see below).
 
     Design goals
     ------------
@@ -39,6 +39,34 @@ Set-StrictMode -Version Latest
 $script:ScaffoldOwner = 'TaffarelJr'
 
 function Get-ScaffoldOwner { return $script:ScaffoldOwner }
+
+#───────────────────────────────────────────────────────────────────────────────
+# Per-layer customization hook
+#───────────────────────────────────────────────────────────────────────────────
+<#
+    Every layer may drop a Template.psm1 next to this file exposing ONE entry point:
+
+        function Invoke-TemplateScaffold {
+            param([hashtable]$Context)   # RepoPath, RepoName, Kind, SourceOwnerRepo, OwnerRepo
+            Rename-ScaffoldToken -RepoPath $Context.RepoPath -From 'Placeholder' -To ...
+            # ...whatever else this template needs, in whatever order
+        }
+
+    It is imported HERE rather than from New-Repo.ps1, so the orchestrator stays byte-identical
+    at every layer too. Importing from inside this module also keeps the layer's functions
+    private to this module, so nothing leaks into the caller's session.
+
+    One entry point (not a set of named phases) is deliberate: a layer then only ever edits
+    Template.psm1, and can add as many private helpers as it likes without touching any shared
+    file. Base layers with nothing to customize simply omit the file.
+#>
+$script:TemplateModule = Join-Path $PSScriptRoot 'Template.psm1'
+if (Test-Path $script:TemplateModule) { Import-Module $script:TemplateModule -Force }
+
+function Test-ScaffoldLayerHook {
+    <# True when this layer supplies a Template.psm1 with the expected entry point. #>
+    return [bool](Get-Command Invoke-TemplateScaffold -ErrorAction SilentlyContinue)
+}
 
 # Files that exist ONLY in the base .github repo. Single source of truth: the same table
 # drives both the deletion and the README de-linking, so the two can't drift apart.
@@ -340,7 +368,7 @@ function Get-ScaffoldContext {
     }
     if ($Matches['owner'] -ne $script:ScaffoldOwner) {
         Write-Warn ("This repo's origin owner is '$($Matches['owner'])' but the configured owner is " +
-            "'$($script:ScaffoldOwner)'. Update `$script:ScaffoldOwner in RepoScaffolding.psm1 if that's wrong.")
+            "'$($script:ScaffoldOwner)'. Update `$script:ScaffoldOwner in Scaffolding.psm1 if that's wrong.")
     }
     [pscustomobject]@{
         SourceOwner     = $Matches['owner']
@@ -368,13 +396,37 @@ function Use-ScaffoldGhAccount {
     param([string]$GhAccount, [Parameter(Mandatory)][string]$ProbeOwnerRepo)
 
     if ($GhAccount) {
+        # Whatever is active now (probably a work account) must still be active when we finish.
+        $previouslyActive = gh api user --jq .login 2>$null
+        $global:LASTEXITCODE = 0
+
         $token = gh auth token --user $GhAccount 2>$null
         if ($LASTEXITCODE -ne 0 -or -not $token) {
             $global:LASTEXITCODE = 0
-            throw ("No stored credentials for gh account '$GhAccount'. Run: gh auth login  " +
-                '(it can coexist with your other accounts; nothing needs to be logged out).')
+            if ($script:SkipManualPrompts) {
+                throw ("No stored credentials for gh account '$GhAccount', and prompts are " +
+                    "suppressed. Run: gh auth login   (then re-run unattended.)")
+            }
+            # First run on a new machine: walk the user through login, then put things back.
+            Write-Warn "No stored credentials for gh account '$GhAccount' - starting 'gh auth login'"
+            Write-Detail "sign in as '$GhAccount'; your other accounts stay logged in"
+            gh auth login --hostname github.com
+            if ($LASTEXITCODE -ne 0) { $global:LASTEXITCODE = 0; throw "'gh auth login' did not complete." }
+            $global:LASTEXITCODE = 0
+
+            # gh makes a freshly logged-in account active; restore what was active before.
+            if ($previouslyActive) {
+                gh auth switch --user $previouslyActive 2>$null | Out-Null
+                $global:LASTEXITCODE = 0
+                Write-Ok "Restored '$previouslyActive' as the active gh account"
+            }
+            $token = gh auth token --user $GhAccount 2>$null
+            if ($LASTEXITCODE -ne 0 -or -not $token) {
+                $global:LASTEXITCODE = 0
+                throw "Still no credentials for '$GhAccount' - did you sign in as a different account?"
+            }
+            $global:LASTEXITCODE = 0
         }
-        $global:LASTEXITCODE = 0
         $env:GH_TOKEN = $token.Trim()
         Write-Ok "Using gh account '$GhAccount' for this run only (active account untouched)"
     }
@@ -1112,6 +1164,51 @@ function Invoke-ScaffoldGatedCommit {
     Invoke-ScaffoldCommit -RepoPath $RepoPath -Message $Message -Paths $Paths
 }
 
+function Invoke-ScaffoldLayerCommit {
+    <#
+        Run this layer's Template.psm1 entry point, then commit exactly what it changed.
+
+        No-op when the layer has no Template.psm1 (e.g. the base .github repo).
+
+        The layer declares nothing about which paths it touches - we diff `git status` around
+        the call and stage precisely that set. That keeps the single-entry-point contract the
+        layer wants while preserving the scoped-staging guarantee: an unrelated dirty file can
+        never be swept into this commit, even on a resumed run.
+    #>
+    param(
+        [Parameter(Mandatory)][string]$RepoPath,
+        [Parameter(Mandatory)][hashtable]$Context,
+        [string]$TemplateBranch = 'main'
+    )
+    if (-not (Test-ScaffoldLayerHook)) {
+        Write-Skip 'No Template.psm1 at this layer - nothing template-specific to apply'
+        return
+    }
+    $message = 'chore: apply template-specific customizations'
+    if (Test-ScaffoldCommitExists -RepoPath $RepoPath -Message $message -TemplateBranch $TemplateBranch) {
+        Write-Skip "'$message' already in history"
+        return
+    }
+
+    $statusPaths = {
+        # Second field onward of each porcelain line; handles 'R  old -> new' by taking the new side.
+        @(git -C $RepoPath status --porcelain 2>$null) | ForEach-Object {
+            $p = $_.Substring(3)
+            if ($p -match ' -> ') { $p = ($p -split ' -> ')[-1] }
+            $p.Trim('"')
+        }
+    }
+    $before = @(& $statusPaths)
+
+    Invoke-TemplateScaffold -Context $Context
+
+    $after = @(& $statusPaths)
+    $touched = @($after | Where-Object { $_ -notin $before })
+    if (-not $touched) { Write-Skip "Template.psm1 changed nothing for: $message"; return }
+
+    Invoke-ScaffoldCommit -RepoPath $RepoPath -Message $message -Paths $touched
+}
+
 function Invoke-ScaffoldCommit {
     <#
         Stage the paths this group owns and commit, but only if something is actually staged.
@@ -1202,6 +1299,8 @@ Export-ModuleMember -Function @(
     'Format-ScaffoldSlug'
     'Confirm-ScaffoldProceed'
     'Invoke-ScaffoldGatedCommit'
+    'Invoke-ScaffoldLayerCommit'
+    'Test-ScaffoldLayerHook'
     'Resolve-ScaffoldValue'
     'Set-ScaffoldSkipPrompts'
     'Get-ScaffoldActivity'

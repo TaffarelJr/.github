@@ -79,7 +79,7 @@ param(
 )
 
 $ErrorActionPreference = 'Stop'
-Import-Module (Join-Path $PSScriptRoot 'RepoScaffolding.psm1') -Force
+Import-Module (Join-Path $PSScriptRoot 'Scaffolding.psm1') -Force
 Set-ScaffoldSkipPrompts $SkipManualPrompts.IsPresent
 $bound = $PSBoundParameters
 
@@ -174,8 +174,18 @@ Invoke-ScaffoldGatedCommit -RepoPath $targetPath -TemplateBranch $TemplateBranch
     Set-ScaffoldTemplateSyncConfig -RepoPath $targetPath -TemplateOwnerRepo $ctx.SourceOwnerRepo
 }
 
-# ── Step 7: this repo's own settings ──────────────────────────────────────────
-Write-ScaffoldStep '7' 'Customize repo settings'
+# ── Step 7: whatever THIS template layer needs (optional Template.psm1) ───────
+Write-ScaffoldStep '7' 'Apply template-specific customizations'
+Invoke-ScaffoldLayerCommit -RepoPath $targetPath -TemplateBranch $TemplateBranch -Context @{
+    RepoPath        = $targetPath
+    RepoName        = $repo
+    Kind            = $Kind
+    OwnerRepo       = $ownerRepo
+    SourceOwnerRepo = $ctx.SourceOwnerRepo
+}
+
+# ── Step 8: this repo's own settings ──────────────────────────────────────────
+Write-ScaffoldStep '8' 'Customize repo settings'
 Invoke-ScaffoldGatedCommit -RepoPath $targetPath -TemplateBranch $TemplateBranch `
     -Message 'chore: customize repo settings' -Paths @('.github/settings.yml') -Body {
     # Inherit from the repo we derived from (_extends resolves recursively up the chain).
@@ -184,13 +194,13 @@ Invoke-ScaffoldGatedCommit -RepoPath $targetPath -TemplateBranch $TemplateBranch
         -Description $Description -Homepage $Homepage -Topics $Topics
 }
 
-# ── Step 8: push (triggers Settings app) + CodeQL ─────────────────────────────
-Write-ScaffoldStep '8' 'Push & enable CodeQL'
+# ── Step 9: push (triggers Settings app) + CodeQL ─────────────────────────────
+Write-ScaffoldStep '9' 'Push & enable CodeQL'
 Push-ScaffoldRepo     -RepoPath $targetPath
 Enable-ScaffoldCodeql -OwnerRepo $ownerRepo   # now that code/workflows exist
 
-# ── Step 9: initialize workflows (only if something changed this run) ─────────
-Write-ScaffoldStep '9' 'Initialize Template Sync'
+# ── Step 10: initialize workflows (only if something changed this run) ─────────
+Write-ScaffoldStep '10' 'Initialize Template Sync'
 if ((Get-ScaffoldActivity) -gt 0) {
     Start-ScaffoldTemplateSync -OwnerRepo $ownerRepo
 }
@@ -198,8 +208,8 @@ else {
     Write-Skip 'Nothing changed this run - Template Sync is already initialized'
 }
 
-# ── Step 10: VS Code multi-root workspace, then open it ───────────────────────
-Write-ScaffoldStep '10' 'Set up the VS Code workspace'
+# ── Step 11: VS Code multi-root workspace, then open it ───────────────────────
+Write-ScaffoldStep '11' 'Set up the VS Code workspace'
 # Exclude BEFORE creating: if the run dies between the two, an unexcluded workspace file
 # would be swept into a later scaffold commit and then sync into every descendant.
 Add-ScaffoldGitExclude -RepoPath $targetPath -Pattern "$repo.code-workspace"

@@ -3,10 +3,11 @@
 These scripts create a new repo **derived from the current repo**.
 Each one creates a new repo on GitHub, and clones it next to this one locally.
 
-| File                     | Purpose                                                   |
-| ------------------------ | --------------------------------------------------------- |
-| 📄 `RepoScaffolding.psm1` | Shared helper module — one function per step              |
-| 📄 `New-Repo.ps1`  | Create a new repo — `-Kind Template` or `-Kind Code`      |
+| File                  | Purpose                                                  |
+| --------------------- | -------------------------------------------------------- |
+| 📄 `Scaffolding.psm1`  | Shared helper module — one function per step             |
+| 📄 `New-Repo.ps1`      | Create a new repo — `-Kind Template` or `-Kind Code`     |
+| 📄 `Template.psm1`     | _Optional, per layer_ — this template's own scaffolding  |
 
 `-Kind` drives the only two differences: a **Template** keeps `scripts/` so it can spawn its
 own children, while **Code** removes `scripts/` and sets `is_template: false`.
@@ -53,7 +54,7 @@ Parameters:
 An explicit empty value (e.g. `-Homepage ''`) counts as "supplied"
 and skips that prompt.
 
-The GitHub **owner is a constant** (`$script:ScaffoldOwner` in `RepoScaffolding.psm1`) —
+The GitHub **owner is a constant** (`$script:ScaffoldOwner` in `Scaffolding.psm1`) —
 this scaffolding is personal-only, so there's no owner parameter to pass. The scripts warn
 if the repo's `origin` owner doesn't match it.
 
@@ -100,9 +101,33 @@ it verifies what's done and picks up where it left off.
 - `-Kind Code` **removes** `scripts/` and sets `is_template: false`
   (a code repo isn't derived from, and outside contributors have no use for the
   personal templating infrastructure).
-- Keep `RepoScaffolding.psm1` **identical at every layer** so merges stay clean.
-  Per-layer differences belong in a data file the module reads, not in edited code —
-  the same idea as `_extends` for settings.
+- Keep `Scaffolding.psm1` **and** `New-Repo.ps1` **identical at every layer** so merges stay
+  clean. Everything layer-specific goes in `Template.psm1` instead — the same idea as
+  `_extends` for settings: shared logic inherited, deltas declared locally.
+
+### Per-layer customization: `Template.psm1`
+
+A layer that needs its own scaffolding steps adds `scripts/Template.psm1` exposing one
+entry point. `Scaffolding.psm1` imports it automatically if the file exists, and step 7
+calls it:
+
+```powershell
+# .template-dotnet/scripts/Template.psm1
+function Invoke-TemplateScaffold {
+    param([hashtable]$Context)   # RepoPath, RepoName, Kind, OwnerRepo, SourceOwnerRepo
+    Rename-Placeholder -RepoPath $Context.RepoPath -To $Context.RepoName
+    # ...anything else this template needs, in whatever order
+}
+Export-ModuleMember -Function Invoke-TemplateScaffold
+```
+
+One entry point, not a set of named phases — so a layer only ever edits this one file and
+can add as many private helpers as it likes. Base layers with nothing to customize simply
+omit it (the step reports "nothing template-specific to apply").
+
+Its changes land in their own commit, `chore: apply template-specific customizations`.
+You don't declare which paths you touch: the module diffs `git status` around the call and
+stages exactly that set, so unrelated uncommitted work can never be swept in.
 
 ### Settings inheritance
 
