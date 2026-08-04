@@ -52,15 +52,15 @@
     Skip all interactive prompts and the confirmation gate (unattended runs).
 
 .EXAMPLE
-    ./scripts/New-DerivedRepo.ps1
+    ./scripts/New-Repo.ps1
     Fully interactive - prompts for everything, including -Kind.
 
 .EXAMPLE
-    ./scripts/New-DerivedRepo.ps1 -Kind Template -Name dotnet
+    ./scripts/New-Repo.ps1 -Kind Template -Name dotnet
     Creates .template-dotnet; prompts only for the rest.
 
 .EXAMPLE
-    ./scripts/New-DerivedRepo.ps1 -Kind Code -Name my-service -GhAccount TaffarelJr `
+    ./scripts/New-Repo.ps1 -Kind Code -Name my-service -GhAccount TaffarelJr `
         -Description 'My service' -Homepage '' -Topics 'dotnet, service' `
         -CodecovToken $env:CODECOV -SkipManualPrompts
     Fully unattended.

@@ -6,7 +6,7 @@ Each one creates a new repo on GitHub, and clones it next to this one locally.
 | File                     | Purpose                                                   |
 | ------------------------ | --------------------------------------------------------- |
 | 📄 `RepoScaffolding.psm1` | Shared helper module — one function per step              |
-| 📄 `New-DerivedRepo.ps1`  | Create a new repo — `-Kind Template` or `-Kind Code`      |
+| 📄 `New-Repo.ps1`  | Create a new repo — `-Kind Template` or `-Kind Code`      |
 
 `-Kind` drives the only two differences: a **Template** keeps `scripts/` so it can spawn its
 own children, while **Code** removes `scripts/` and sets `is_template: false`.
@@ -20,13 +20,13 @@ So you can run fully interactive, partially pre-filled, or fully unattended.
 
 ```powershell
 # fully interactive - just answer the prompts (including -Kind)
-./scripts/New-DerivedRepo.ps1
+./scripts/New-Repo.ps1
 
 # partially pre-filled - prompts only for what's missing
-./scripts/New-DerivedRepo.ps1 -Kind Template -Name dotnet
+./scripts/New-Repo.ps1 -Kind Template -Name dotnet
 
 # fully unattended - no prompts at all (scriptable / batchable)
-./scripts/New-DerivedRepo.ps1 -Kind Code -Name my-service -GhAccount TaffarelJr `
+./scripts/New-Repo.ps1 -Kind Code -Name my-service -GhAccount TaffarelJr `
     -Description 'My service' -Homepage '' -Topics 'dotnet, service' `
     -CodecovToken $env:CODECOV -SkipManualPrompts
 ```
