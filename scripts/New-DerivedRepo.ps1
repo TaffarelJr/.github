@@ -1,33 +1,41 @@
 #Requires -Version 7.0
 <#
 .SYNOPSIS
-    Create a new code repo derived from THIS template repo.
+    Create a new repo derived from THIS template repo - either another TEMPLATE layer or a
+    plain CODE repo.
 
 .DESCRIPTION
-    Run this from inside the template repo you want to derive from.
-    The source template is auto-detected from this repo's 'origin' remote;
-    the new repo is created on GitHub and cloned next to this one,
-    reusing the same 'origin' URL style.
+    Run this from inside the template repo you want to derive from. The source template is
+    auto-detected from this repo's 'origin' remote; the new repo is created on GitHub and
+    cloned next to this one, reusing the same 'origin' URL style.
 
-    Same flow as New-TemplateRepo.ps1, with three differences: the repo name is freeform
-    (no '.template-' prefix), settings.yml overrides is_template to false, and the
-    scripts/ folder is removed - a code repo isn't derived from, and external
-    contributors have no use for the personal templating infrastructure.
+    -Kind selects the only two behavioural differences:
+      Template : keeps scripts/ (the child can spawn its own children); is_template stays inherited.
+      Code     : removes scripts/ (a code repo isn't derived from, and outside contributors
+                 have no use for the personal templating infrastructure) and sets
+                 is_template: false.
 
-    Scaffolding produces a complete, known-good baseline and stops. Its work is grouped
-    into separate commits (template files, then repo settings), but it never pauses for
-    you to add repo-specific customizations along the way - those are just normal commits
-    you make afterwards, on a branch, as a PR.
+    Scaffolding produces a complete, known-good baseline and stops. Its work is grouped into
+    four commits, each with a single concern. It never pauses for you to add repo-specific
+    customizations - those are normal commits you make afterwards, on a branch, as a PR
+    (also required: once the Settings app applies the rulesets, direct pushes to main are
+    rejected).
 
-    Every value is an OPTIONAL parameter.
-    Anything you omit is prompted for, with a sensible default where one exists.
-    Supply all of them plus -SkipManualPrompts for a fully unattended run.
+    Every value is an OPTIONAL parameter. Anything you omit is prompted for, with a sensible
+    default where one exists. Supply all of them plus -SkipManualPrompts for a fully
+    unattended run.
 
-    Idempotent & resumable: re-running verifies what's already done,
-    and only fills gaps. It never overwrites post-scaffold changes.
+    Idempotent & resumable: re-running verifies what's already done and only fills gaps. It
+    never overwrites post-scaffold changes.
+
+.PARAMETER Kind
+    'Template' for a new template layer, 'Code' for a leaf code repo. Default: Code.
 
 .PARAMETER Name
-    New repo name (kebab-case), e.g. 'my-service'.
+    The new repo's name, in kebab-case.
+    For -Kind Template the '.template-' prefix is optional: 'dotnet' and '.template-dotnet'
+    both produce '.template-dotnet'.
+
 .PARAMETER GhAccount
     gh account that admins the owner. Switched to & verified first. Blank = use current.
 .PARAMETER Description
@@ -44,16 +52,22 @@
     Skip all interactive prompts and the confirmation gate (unattended runs).
 
 .EXAMPLE
-    ./scripts/New-Repo.ps1                            # fully interactive
+    ./scripts/New-DerivedRepo.ps1
+    Fully interactive - prompts for everything, including -Kind.
+
 .EXAMPLE
-    ./scripts/New-Repo.ps1 -Name my-service           # prompts only for the rest
+    ./scripts/New-DerivedRepo.ps1 -Kind Template -Name dotnet
+    Creates .template-dotnet; prompts only for the rest.
+
 .EXAMPLE
-    ./scripts/New-Repo.ps1 -Name my-service -GhAccount TaffarelJr `
+    ./scripts/New-DerivedRepo.ps1 -Kind Code -Name my-service -GhAccount TaffarelJr `
         -Description 'My service' -Homepage '' -Topics 'dotnet, service' `
-        -CodecovToken $env:CODECOV -SkipManualPrompts   # unattended
+        -CodecovToken $env:CODECOV -SkipManualPrompts
+    Fully unattended.
 #>
 [CmdletBinding()]
 param(
+    [ValidateSet('Template', 'Code')][string]$Kind,
     [string]$Name,
     [string]$GhAccount,
     [string]$Description,
@@ -78,16 +92,29 @@ Write-ScaffoldStep '0' 'Prerequisites & inputs'
 $ctx = Get-ScaffoldContext -ScriptRoot $PSScriptRoot
 $owner = Get-ScaffoldOwner
 
-$Name = Resolve-ScaffoldValue -Name Name -Bound $bound -Value $Name -Prompt "New repo name (kebab-case, e.g. 'my-service')"
-$Name = Format-ScaffoldSlug -Value $Name -Label 'Name'
+$Kind = Resolve-ScaffoldValue -Name Kind -Bound $bound -Value $Kind `
+    -Prompt 'Kind - Template (a new layer) or Code (a leaf repo)' -Default 'Code'
+if ($Kind -notin 'Template', 'Code') { throw "Kind must be 'Template' or 'Code', not '$Kind'." }
 
-$repo = $Name
+$namePrompt = if ($Kind -eq 'Template') {
+    "Template type (kebab-case, e.g. 'dotnet' -> '.template-dotnet')"
+}
+else {
+    "New repo name (kebab-case, e.g. 'my-service')"
+}
+$Name = Resolve-ScaffoldValue -Name Name -Bound $bound -Value $Name -Prompt $namePrompt
+
+# Accept either 'dotnet' or '.template-dotnet' for a template layer.
+$slug = if ($Kind -eq 'Template') { $Name -replace '^\.template-', '' } else { $Name }
+$slug = Format-ScaffoldSlug -Value $slug -Label 'Name'
+$repo = if ($Kind -eq 'Template') { ".template-$slug" } else { $slug }
+
 $ownerRepo = "$owner/$repo"
 $targetPath = Join-Path $ctx.ParentDir $repo
 
 Write-ScaffoldField 'Source template' $ctx.SourceOwnerRepo
 Write-ScaffoldField ''                $ctx.SourceRoot
-Write-ScaffoldField 'New code repo'   $ownerRepo
+Write-ScaffoldField "New $($Kind.ToLowerInvariant()) repo" $ownerRepo
 Write-ScaffoldField 'Clone to'        $targetPath
 
 $GhAccount = Resolve-ScaffoldValue -Name GhAccount -Bound $bound -Value $GhAccount -Prompt "gh account that admins '$owner' (blank = use current)"
@@ -127,7 +154,7 @@ Write-ScaffoldStep '4' 'Remove template-only files'
 Invoke-ScaffoldGatedCommit -RepoPath $targetPath -TemplateBranch $TemplateBranch `
     -Message 'chore: remove template-only files' -Paths @('.github', 'README.md', 'scripts') -Body {
     Remove-ScaffoldTemplateOnlyFiles -RepoPath $targetPath
-    Remove-ScaffoldScripts           -RepoPath $targetPath
+    if ($Kind -eq 'Code') { Remove-ScaffoldScripts -RepoPath $targetPath }
     Update-ScaffoldReadme            -RepoPath $targetPath
 }
 
@@ -152,7 +179,7 @@ Write-ScaffoldStep '7' 'Customize repo settings'
 Invoke-ScaffoldGatedCommit -RepoPath $targetPath -TemplateBranch $TemplateBranch `
     -Message 'chore: customize repo settings' -Paths @('.github/settings.yml') -Body {
     # Inherit from the repo we derived from (_extends resolves recursively up the chain).
-    Write-ScaffoldSettings -RepoPath $targetPath -Kind Code -Name $repo `
+    Write-ScaffoldSettings -RepoPath $targetPath -Kind $Kind -Name $repo `
         -ExtendsRepo $ctx.SourceRepo `
         -Description $Description -Homepage $Homepage -Topics $Topics
 }
@@ -190,6 +217,6 @@ if ((Get-ScaffoldActivity) -eq 0) {
     Write-Host "  ✅ $ownerRepo was already fully scaffolded - nothing to change." -ForegroundColor Green
 }
 else {
-    Write-Host "  🎉 Code repo $ownerRepo ready at $targetPath." -ForegroundColor Green
+    Write-Host "  🎉 $($Kind.ToLowerInvariant()) repo $ownerRepo ready at $targetPath." -ForegroundColor Green
 }
 Write-Host ""

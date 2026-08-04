@@ -3,11 +3,13 @@
 These scripts create a new repo **derived from the current repo**.
 Each one creates a new repo on GitHub, and clones it next to this one locally.
 
-| File                     | Purpose                                                    |
-| ------------------------ | ---------------------------------------------------------- |
-| 📄 `RepoScaffolding.psm1` | Shared helper module — one function per checklist step     |
-| 📄 `New-TemplateRepo.ps1` | Create a new **template** repo (`.template-<type>`)        |
-| 📄 `New-Repo.ps1`         | Create a new **code** repo (not derived from further)       |
+| File                     | Purpose                                                   |
+| ------------------------ | --------------------------------------------------------- |
+| 📄 `RepoScaffolding.psm1` | Shared helper module — one function per step              |
+| 📄 `New-DerivedRepo.ps1`  | Create a new repo — `-Kind Template` or `-Kind Code`      |
+
+`-Kind` drives the only two differences: a **Template** keeps `scripts/` so it can spawn its
+own children, while **Code** removes `scripts/` and sets `is_template: false`.
 
 ## Usage
 
@@ -17,23 +19,23 @@ Pass what you want on the command line; anything you omit is **prompted for**
 So you can run fully interactive, partially pre-filled, or fully unattended.
 
 ```powershell
-# fully interactive - just answer the prompts
-./scripts/New-TemplateRepo.ps1
+# fully interactive - just answer the prompts (including -Kind)
+./scripts/New-DerivedRepo.ps1
 
 # partially pre-filled - prompts only for what's missing
-./scripts/New-TemplateRepo.ps1 -Type dotnet
+./scripts/New-DerivedRepo.ps1 -Kind Template -Name dotnet
 
 # fully unattended - no prompts at all (scriptable / batchable)
-./scripts/New-Repo.ps1 -Name my-service -GhAccount TaffarelJr `
+./scripts/New-DerivedRepo.ps1 -Kind Code -Name my-service -GhAccount TaffarelJr `
     -Description 'My service' -Homepage '' -Topics 'dotnet, service' `
     -CodecovToken $env:CODECOV -SkipManualPrompts
 ```
 
 Parameters:
 
-- `-Type` _(New-TemplateRepo only)_ — the template type;
-  e.g. `dotnet` → `.template-dotnet`.
-- `-Name` _(New-Repo only)_ — the new repo name, in kebab-case.
+- `-Kind` — `Template` (a new layer) or `Code` (a leaf repo). Default: `Code`.
+- `-Name` — the new repo name, in kebab-case. For `-Kind Template` the `.template-`
+  prefix is optional: `dotnet` and `.template-dotnet` both give `.template-dotnet`.
 - `-GhAccount` — the gh account that admins the owner;
   the script switches to it and verifies admin access first
   (blank = use the current account).
@@ -94,10 +96,13 @@ it verifies what's done and picks up where it left off.
 
 - Every template repo carries this `scripts/` folder,
   so a new repo can be derived from **any** template at **any** level.
-  Override individual helpers in a child template as needed.
-- `New-TemplateRepo.ps1` **keeps** `scripts/` (the child can spawn its own children).
-- `New-Repo.ps1` **removes** `scripts/` and sets `is_template: false`
-  (a code repo isn't derived from).
+- `-Kind Template` **keeps** `scripts/` (the child can spawn its own children).
+- `-Kind Code` **removes** `scripts/` and sets `is_template: false`
+  (a code repo isn't derived from, and outside contributors have no use for the
+  personal templating infrastructure).
+- Keep `RepoScaffolding.psm1` **identical at every layer** so merges stay clean.
+  Per-layer differences belong in a data file the module reads, not in edited code —
+  the same idea as `_extends` for settings.
 
 ### Settings inheritance
 
