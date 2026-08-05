@@ -85,7 +85,7 @@ $bound = $PSBoundParameters
 
 # Render any terminating error as a readable banner (which step, message, stack) instead of
 # a raw PowerShell dump, then stop with a non-zero exit code.
-trap { Reset-ScaffoldGhAccount; Show-ScaffoldFailure -ErrorRecord $_; exit 1 }
+trap { Remove-ScaffoldLayerModule; Reset-ScaffoldGhAccount; Show-ScaffoldFailure -ErrorRecord $_; exit 1 }
 
 # ── Step 0: context + inputs ──────────────────────────────────────────────────
 Write-ScaffoldStep '0' 'Prerequisites & inputs'
@@ -220,6 +220,7 @@ $wsFile = Write-ScaffoldWorkspaceFile -RepoPath $targetPath -RepoName $repo -Cha
 Start-ScaffoldVSCode   -Target $wsFile
 
 # ── Manual follow-up checklist ────────────────────────────────────────────────
+Remove-ScaffoldLayerModule
 Reset-ScaffoldGhAccount
 Register-ScaffoldManualSettings -OwnerRepo $ownerRepo
 Show-ScaffoldManualChecklist    -OwnerRepo $ownerRepo

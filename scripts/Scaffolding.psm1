@@ -46,36 +46,70 @@ function Get-ScaffoldOwner { return $script:ScaffoldOwner }
 <#
     Each layer contributes its own scaffolding steps as ADDITIVE files next to this one:
 
-        Scaffolding-10-dotnet.ps1     added by .template-dotnet
-        Scaffolding-20-nuget.ps1      added by .template-nuget
-        Scaffolding-20-winui.ps1      added by .template-winui   (sibling; never sees nuget's)
+        Scaffolding-10-dotnet.psm1    added by .template-dotnet
+        Scaffolding-20-nuget.psm1     added by .template-nuget
+        Scaffolding-20-winui.psm1     added by .template-winui   (sibling; never sees nuget's)
 
-    Naming convention: Scaffolding-<NN>-<slug>.ps1, run in filename order, so <NN> is the layer
-    tier. Each file is a plain script taking -Context:
+    Naming convention: Scaffolding-<NN>-<slug>.psm1, loaded in filename order, so <NN> is the
+    layer tier. Each module exports helper functions for its descendants to reuse, PLUS exactly
+    one entry point matching Invoke-*Scaffold:
 
-        param([hashtable]$Context)   # RepoPath, RepoName, Kind, OwnerRepo, SourceOwnerRepo
-        Rename-ScaffoldToken -RepoPath $Context.RepoPath -From 'Placeholder' -To $Context.RepoName
+        function Rename-DotnetPlaceholder { ... }        # reusable by lower layers
+        function Invoke-DotnetScaffold {
+            param([hashtable]$Context)   # RepoPath, RepoName, Kind, OwnerRepo, SourceOwnerRepo
+            Rename-DotnetPlaceholder -RepoPath $Context.RepoPath -To $Context.RepoName
+        }
+        Export-ModuleMember -Function Rename-DotnetPlaceholder, Invoke-DotnetScaffold
 
-    WHY MANY FILES RATHER THAN ONE Template.psm1: with a single fixed name, every layer would
-    have to EDIT its parent's copy to append its own steps - guaranteeing a merge conflict on
-    that file forever, and forcing the child to re-state the parent's logic. With one file per
-    layer, a child ADDS a file and never touches an inherited one, so template merges stay
-    clean and each layer owns exactly what it wrote.
+    The entry point is found via the module's own ExportedFunctions, so the function name is
+    never coupled to the filename - only to the Invoke-*Scaffold pattern. Exactly one is
+    required; zero or several is a configuration error worth failing on.
 
-    These are read from the SOURCE template (wherever New-Repo.ps1 is running from), not from
-    the new repo - so a leaf still gets its parent's renames even though scaffolding deletes
-    the leaf's own scripts/ folder.
+    They are imported -Global so that every layer's helpers are visible to the layers below it
+    (verified: a nuget module can call a dotnet module's exported helper). That is the point of
+    using modules rather than plain scripts.
 
-    A layer needing a real library can add its own .psm1 and import it from its step script.
-    Base layers with nothing to customize simply contribute no file.
+    WHY ONE MODULE PER LAYER: with a single fixed filename, every layer would have to EDIT its
+    parent's copy to append its own steps - guaranteeing a merge conflict on that file forever,
+    and forcing the child to re-state the parent's logic. With one per layer, a child ADDS a
+    file and never touches an inherited one, so template merges stay clean.
+
+    They are read from the SOURCE template (wherever New-Repo.ps1 is running from), not from the
+    new repo - so a leaf still gets its ancestors' renames even though scaffolding deletes the
+    leaf's own scripts/ folder. Base layers with nothing to customize contribute no file.
 #>
 
-function Get-ScaffoldLayerStep {
-    <# The layer step scripts contributed by this template chain, in execution order. #>
-    # Filter on the prefix then check the extension explicitly: a Windows -Filter of '*.ps1'
-    # can also match '.psm1', which would try to execute the shared module as a step.
+function Get-ScaffoldLayerModule {
+    <# The layer modules contributed by this template chain, in load order. #>
+    # Check the extension explicitly: a Windows -Filter of '*.psm1' can behave loosely, and the
+    # 'Scaffolding-' prefix already excludes this file itself.
     return @(Get-ChildItem -Path $PSScriptRoot -Filter 'Scaffolding-*' -File -ErrorAction SilentlyContinue |
-            Where-Object { $_.Extension -eq '.ps1' } | Sort-Object Name)
+            Where-Object { $_.Extension -eq '.psm1' } | Sort-Object Name)
+}
+
+function Import-ScaffoldLayerModule {
+    <#
+        Load every layer module and return its (module, entry point) pairs in order.
+        -Global is required so lower layers can call upper layers' exported helpers.
+    #>
+    $loaded = [System.Collections.Generic.List[object]]::new()
+    foreach ($file in Get-ScaffoldLayerModule) {
+        $mod = Import-Module $file.FullName -Force -Global -PassThru
+        $entry = @($mod.ExportedFunctions.Values | Where-Object { $_.Name -like 'Invoke-*Scaffold' })
+        if ($entry.Count -ne 1) {
+            throw ("$($file.Name) must export exactly one Invoke-*Scaffold entry point, " +
+                "but exports $($entry.Count)$(if ($entry) { ": $($entry.Name -join ', ')" }).")
+        }
+        $loaded.Add([pscustomobject]@{ Name = $file.Name; Module = $mod; Entry = $entry[0] })
+    }
+    return $loaded.ToArray()
+}
+
+function Remove-ScaffoldLayerModule {
+    <# Unload the layer modules so an interactive session isn't left holding them. #>
+    foreach ($file in Get-ScaffoldLayerModule) {
+        Remove-Module ([System.IO.Path]::GetFileNameWithoutExtension($file.Name)) -Force -ErrorAction SilentlyContinue
+    }
 }
 
 # Files that exist ONLY in the base .github repo. Single source of truth: the same table
@@ -1237,9 +1271,9 @@ function Invoke-ScaffoldLayerCommit {
         [Parameter(Mandatory)][hashtable]$Context,
         [string]$TemplateBranch = 'main'
     )
-    $steps = Get-ScaffoldLayerStep
-    if (-not $steps) {
-        Write-Skip 'No Scaffolding-*.ps1 steps in this chain - nothing template-specific to apply'
+    $layers = Import-ScaffoldLayerModule
+    if (-not $layers) {
+        Write-Skip 'No Scaffolding-*.psm1 layers in this chain - nothing template-specific to apply'
         return
     }
     $message = 'chore: apply template-specific customizations'
@@ -1258,9 +1292,9 @@ function Invoke-ScaffoldLayerCommit {
     }
     $before = @(& $statusPaths)
 
-    foreach ($step in $steps) {
-        Write-Info "Running $($step.Name)"
-        & $step.FullName -Context $Context
+    foreach ($layer in $layers) {
+        Write-Info "$($layer.Name) -> $($layer.Entry.Name)"
+        & $layer.Entry -Context $Context
     }
 
     $after = @(& $statusPaths)
@@ -1361,7 +1395,9 @@ Export-ModuleMember -Function @(
     'Confirm-ScaffoldProceed'
     'Invoke-ScaffoldGatedCommit'
     'Invoke-ScaffoldLayerCommit'
-    'Get-ScaffoldLayerStep'
+    'Get-ScaffoldLayerModule'
+    'Import-ScaffoldLayerModule'
+    'Remove-ScaffoldLayerModule'
     'Resolve-ScaffoldValue'
     'Set-ScaffoldSkipPrompts'
     'Get-ScaffoldActivity'
