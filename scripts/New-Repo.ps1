@@ -140,7 +140,7 @@ Write-ScaffoldStep '2' 'Configure repo settings (API)'
 Set-ScaffoldActionsPermissions      -OwnerRepo $ownerRepo
 Enable-ScaffoldPrivateVulnReporting -OwnerRepo $ownerRepo
 Enable-ScaffoldImmutableReleases    -OwnerRepo $ownerRepo
-Set-ScaffoldTopics                  -OwnerRepo $ownerRepo -Topics $Topics
+Initialize-ScaffoldTopics           -OwnerRepo $ownerRepo
 Set-ScaffoldCodecovSecret           -OwnerRepo $ownerRepo -Token $CodecovToken
 
 # ── Step 3: clone + remotes ───────────────────────────────────────────────────
@@ -177,12 +177,13 @@ Invoke-ScaffoldGatedCommit -RepoPath $targetPath -TemplateBranch $TemplateBranch
 
 # ── Step 7: whatever THIS template layer needs (optional Template.psm1) ───────
 Write-ScaffoldStep '7' 'Apply template-specific customizations'
-Invoke-ScaffoldLayerCommit -RepoPath $targetPath -TemplateBranch $TemplateBranch -Context @{
+Invoke-ScaffoldLayer -RepoPath $targetPath -Context @{
     RepoPath        = $targetPath
     RepoName        = $repo
     Kind            = $Kind
     OwnerRepo       = $ownerRepo
     SourceOwnerRepo = $ctx.SourceOwnerRepo
+    TemplateBranch  = $TemplateBranch   # layers need this for their own gated commits
 }
 
 # ── Step 8: this repo's own settings ──────────────────────────────────────────

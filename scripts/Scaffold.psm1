@@ -570,41 +570,37 @@ function Set-ScaffoldCodecovSecret {
     Write-Ok "Added repo secret CODECOV_TOKEN"
 }
 
-function Set-ScaffoldTopics {
+function Initialize-ScaffoldTopics {
     <#
-        Set the repo's topics directly, rather than waiting for the Settings app to do it from
-        settings.yml.
+        Seed ONE placeholder topic so that settings.yml can manage topics from then on.
 
-        Observed on every derived repo: description lands but topics stay empty. The app's
-        repository plugin does call `PUT /repos/{owner}/{repo}/topics` whenever its `topics`
-        value is truthy, splitting the comma-separated string - so the config format is right
-        and there is no documented precondition. The call simply doesn't take effect on a repo
-        that has never had a topic. Setting them here makes it deterministic; settings.yml then
-        keeps them in sync from that point on.
+        The real list lives in settings.yml and nowhere else - deliberately. This does not read
+        it, so there is no second copy to keep in sync.
 
-        Note there is no way to do this while creating the repo: POST /user/repos has no topics
-        parameter, so it is necessarily a second call.
+        Why seed at all: on a repo that has never had a topic, the Settings app's topics call
+        does not take effect (its repository plugin does issue
+        `PUT /repos/{owner}/{repo}/topics` whenever its value is truthy, so the config format is
+        right - it just doesn't land). Once any topic exists, subsequent syncs replace it
+        correctly. A direct PUT works even on a fresh repo, so one throwaway topic is enough to
+        prime it; the next settings.yml sync overwrites this value entirely.
+
+        This has to be its own call: neither POST /user/repos nor POST /orgs/{org}/repos accepts
+        a topics parameter.
     #>
-    param([Parameter(Mandatory)][string]$OwnerRepo, [string]$Topics)
+    param([Parameter(Mandatory)][string]$OwnerRepo)
 
-    if (-not $Topics) { Write-Skip 'No topics given'; return }
-    $names = @($Topics -split ',' | ForEach-Object { $_.Trim().ToLowerInvariant() } | Where-Object { $_ })
-    if (-not $names) { Write-Skip 'No topics given'; return }
-
-    $current = gh api "repos/$OwnerRepo/topics" --jq '.names | join(",")' 2>$null
+    $current = gh api "repos/$OwnerRepo/topics" --jq '.names | length' 2>$null
     $global:LASTEXITCODE = 0
-    if ($current -and (($current -split ',' | Sort-Object) -join ',') -eq (($names | Sort-Object) -join ',')) {
-        Write-Skip "Topics already set ($current)"
+    if ($current -and [int]$current -gt 0) {
+        Write-Skip "Topics already seeded ($current present) - settings.yml owns them"
         return
     }
 
-    # -f names[]=... repeats the field to build a JSON array.
-    # NB not $args - that is a PowerShell automatic variable.
-    $ghArgs = @('api', '--method', 'PUT', "repos/$OwnerRepo/topics")
-    foreach ($n in $names) { $ghArgs += @('-f', "names[]=$n") }
-    Invoke-ScaffoldGh -What 'Setting repo topics' -Arguments $ghArgs | Out-Null
+    Invoke-ScaffoldGh -What 'Seeding a placeholder topic' -Arguments @(
+        'api', '--method', 'PUT', "repos/$OwnerRepo/topics", '-f', 'names[]=github') | Out-Null
     Add-ScaffoldActivity
-    Write-Ok "Set topics: $($names -join ', ')"
+    Write-Ok "Seeded topic 'github'"
+    Write-Detail 'settings.yml replaces this on the next sync'
 }
 
 function Enable-ScaffoldImmutableReleases {
@@ -1267,53 +1263,100 @@ function Invoke-ScaffoldGatedCommit {
     Invoke-ScaffoldCommit -RepoPath $RepoPath -Message $Message -Paths $Paths
 }
 
-function Invoke-ScaffoldLayerCommit {
+function Invoke-ScaffoldLayer {
     <#
-        Run this layer's Template.psm1 entry point, then commit exactly what it changed.
+        Load every layer module in the chain and run its entry point, base layer first.
 
-        No-op when the layer has no Template.psm1 (e.g. the base .github repo).
+        Each layer OWNS ITS OWN COMMITS. A layer that adds several unrelated things should make
+        several commits with messages that describe them, which it does by calling the exported
+        Invoke-ScaffoldGatedCommit itself:
 
-        The layer declares nothing about which paths it touches - we diff `git status` around
-        the call and stage precisely that set. That keeps the single-entry-point contract the
-        layer wants while preserving the scoped-staging guarantee: an unrelated dirty file can
-        never be swept into this commit, even on a resumed run.
+            Invoke-ScaffoldGatedCommit -RepoPath $Context.RepoPath `
+                -Message 'chore: rename the placeholder project' `
+                -Paths @('src', 'test', '*.sln') -Body { ... }
+
+        That keeps both properties that matter: the gate makes each commit independently
+        resumable, and -Paths keeps staging scoped so unrelated uncommitted work is never
+        swept in.
+
+        No-op when the chain contributes no layer module (e.g. deriving straight from .github).
     #>
     param(
         [Parameter(Mandatory)][string]$RepoPath,
-        [Parameter(Mandatory)][hashtable]$Context,
-        [string]$TemplateBranch = 'main'
+        [Parameter(Mandatory)][hashtable]$Context
     )
     $layers = Import-ScaffoldLayerModule
     if (-not $layers) {
         Write-Skip 'No Scaffold-*.psm1 layers in this chain - nothing template-specific to apply'
         return
     }
-    $message = 'chore: apply template-specific customizations'
-    if (Test-ScaffoldCommitExists -RepoPath $RepoPath -Message $message -TemplateBranch $TemplateBranch) {
-        Write-Skip "'$message' already in history"
-        return
-    }
-
-    $statusPaths = {
-        # Second field onward of each porcelain line; handles 'R  old -> new' by taking the new side.
-        @(git -C $RepoPath status --porcelain 2>$null) | ForEach-Object {
-            $p = $_.Substring(3)
-            if ($p -match ' -> ') { $p = ($p -split ' -> ')[-1] }
-            $p.Trim('"')
-        }
-    }
-    $before = @(& $statusPaths)
+    # Snapshot first so the check below reports only what the LAYERS dirtied - the developer's
+    # own uncommitted work was already there and is none of our business.
+    $status = { @(git -C $RepoPath status --porcelain 2>$null); $global:LASTEXITCODE = 0 }
+    $before = @(& $status)
 
     foreach ($layer in $layers) {
         Write-Info "$($layer.Name) -> $($layer.Entry.Name)"
         & $layer.Entry -Context $Context
     }
 
-    $after = @(& $statusPaths)
-    $touched = @($after | Where-Object { $_ -notin $before })
-    if (-not $touched) { Write-Skip "Template.psm1 changed nothing for: $message"; return }
+    # A layer that changed files but committed nothing would leave them uncommitted forever:
+    # every later step stages an explicit pathspec, so nothing else picks them up.
+    $left = @((& $status) | Where-Object { $_ -notin $before })
+    if ($left) {
+        Write-Warn "$($left.Count) file(s) changed by a layer but left uncommitted"
+        foreach ($l in $left) { Write-Detail $l.Trim() }
+        Write-Detail 'a layer should commit its own work via Invoke-ScaffoldGatedCommit'
+    }
+}
 
-    Invoke-ScaffoldCommit -RepoPath $RepoPath -Message $message -Paths $touched
+function Rename-ScaffoldToken {
+    <#
+        Replace a placeholder token throughout a repo - in file CONTENT, in file NAMES, and in
+        DIRECTORY names. Generic on purpose: .NET uses 'Placeholder', Python would use something
+        like 'placeholder_pkg', so each layer supplies its own token.
+
+        Deepest paths are renamed first so renaming a parent directory can't invalidate the
+        paths of its children.
+
+        Binary-ish files are skipped by extension rather than by sniffing, which is crude but
+        predictable. -Exclude keeps the walk out of .git and any build output.
+    #>
+    param(
+        [Parameter(Mandatory)][string]$RepoPath,
+        [Parameter(Mandatory)][string]$From,
+        [Parameter(Mandatory)][string]$To,
+        [string[]]$SkipExtension = @('.png', '.jpg', '.jpeg', '.gif', '.ico', '.svg', '.pdf', '.zip', '.dll', '.exe', '.snk'),
+        [string[]]$Exclude = @('.git', 'bin', 'obj', 'node_modules')
+    )
+    if ($From -eq $To) { Write-Skip "Nothing to rename ('$From' is already '$To')"; return }
+
+    $skipRx = '[\\/](' + (($Exclude | ForEach-Object { [regex]::Escape($_) }) -join '|') + ')[\\/]'
+    $all = @(Get-ChildItem -LiteralPath $RepoPath -Recurse -Force -ErrorAction SilentlyContinue |
+            Where-Object { $_.FullName -notmatch $skipRx })
+
+    # 1) content
+    $edited = 0
+    foreach ($f in @($all | Where-Object { -not $_.PSIsContainer -and $_.Extension -notin $SkipExtension })) {
+        $raw = Get-Content -LiteralPath $f.FullName -Raw -ErrorAction SilentlyContinue
+        if ($null -ne $raw -and $raw.Contains($From)) {
+            $raw.Replace($From, $To) | Set-Content -LiteralPath $f.FullName -NoNewline
+            $edited++
+        }
+    }
+
+    # 2) names, deepest first
+    $renamed = 0
+    foreach ($item in @($all | Where-Object { $_.Name.Contains($From) } |
+                Sort-Object { $_.FullName.Split([char]'\').Count } -Descending)) {
+        if (-not (Test-Path -LiteralPath $item.FullName)) { continue }   # parent already renamed
+        Rename-Item -LiteralPath $item.FullName -NewName ($item.Name.Replace($From, $To)) -ErrorAction Stop
+        $renamed++
+    }
+
+    if ($edited -eq 0 -and $renamed -eq 0) { Write-Skip "No '$From' found to rename"; return }
+    Write-Ok "Renamed '$From' -> '$To'"
+    Write-Detail "$edited file(s) edited, $renamed path(s) renamed"
 }
 
 function Invoke-ScaffoldCommit {
@@ -1408,7 +1451,8 @@ Export-ModuleMember -Function @(
     'Format-ScaffoldSlug'
     'Confirm-ScaffoldProceed'
     'Invoke-ScaffoldGatedCommit'
-    'Invoke-ScaffoldLayerCommit'
+    'Invoke-ScaffoldLayer'
+    'Rename-ScaffoldToken'
     'Get-ScaffoldLayerModule'
     'Import-ScaffoldLayerModule'
     'Remove-ScaffoldLayerModule'
@@ -1425,7 +1469,7 @@ Export-ModuleMember -Function @(
     'Set-ScaffoldActionsPermissions'
     'Enable-ScaffoldPrivateVulnReporting'
     'Set-ScaffoldCodecovSecret'
-    'Set-ScaffoldTopics'
+    'Initialize-ScaffoldTopics'
     'Enable-ScaffoldImmutableReleases'
     'Enable-ScaffoldCodeql'
     'Get-ScaffoldSiblingUrl'
