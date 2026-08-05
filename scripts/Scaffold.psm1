@@ -658,8 +658,17 @@ function Enable-ScaffoldCodeql {
         Write-Ok 'CodeQL default setup enabled'
     }
     else {
-        Write-Warn 'CodeQL default setup not enabled automatically'
-        Write-Detail "configure it at https://github.com/$OwnerRepo/settings/security_analysis"
+        # Observed on a brand-new repo: GET reports 'not-configured' but PUT 404s for a while
+        # after creation, even with languages given explicitly and a workflow already pushed -
+        # code scanning appears not to be provisioned yet. Rather than fail or busy-wait, hand
+        # it to the checklist; a later re-run will pick it up once the repo is eligible.
+        Write-Warn 'CodeQL default setup not enabled automatically - added to the checklist'
+        Add-ScaffoldManualItem -Category 'GitHub settings — web UI only (no API)' `
+            -Title 'Set up CodeQL default analysis' `
+            -Steps @(
+            "https://github.com/$OwnerRepo/settings/security_analysis  →  Code scanning  →  Default  →  Enable",
+            'Or just re-run this script once the repo is a few minutes old.'
+        )
     }
 }
 
