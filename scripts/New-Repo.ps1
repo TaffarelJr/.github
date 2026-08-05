@@ -140,6 +140,7 @@ Write-ScaffoldStep '2' 'Configure repo settings (API)'
 Set-ScaffoldActionsPermissions      -OwnerRepo $ownerRepo
 Enable-ScaffoldPrivateVulnReporting -OwnerRepo $ownerRepo
 Enable-ScaffoldImmutableReleases    -OwnerRepo $ownerRepo
+Set-ScaffoldTopics                  -OwnerRepo $ownerRepo -Topics $Topics
 Set-ScaffoldCodecovSecret           -OwnerRepo $ownerRepo -Token $CodecovToken
 
 # ── Step 3: clone + remotes ───────────────────────────────────────────────────

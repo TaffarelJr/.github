@@ -533,6 +533,43 @@ function Set-ScaffoldCodecovSecret {
     Write-Ok "Added repo secret CODECOV_TOKEN"
 }
 
+function Set-ScaffoldTopics {
+    <#
+        Set the repo's topics directly, rather than waiting for the Settings app to do it from
+        settings.yml.
+
+        Observed on every derived repo: description lands but topics stay empty. The app's
+        repository plugin does call `PUT /repos/{owner}/{repo}/topics` whenever its `topics`
+        value is truthy, splitting the comma-separated string - so the config format is right
+        and there is no documented precondition. The call simply doesn't take effect on a repo
+        that has never had a topic. Setting them here makes it deterministic; settings.yml then
+        keeps them in sync from that point on.
+
+        Note there is no way to do this while creating the repo: POST /user/repos has no topics
+        parameter, so it is necessarily a second call.
+    #>
+    param([Parameter(Mandatory)][string]$OwnerRepo, [string]$Topics)
+
+    if (-not $Topics) { Write-Skip 'No topics given'; return }
+    $names = @($Topics -split ',' | ForEach-Object { $_.Trim().ToLowerInvariant() } | Where-Object { $_ })
+    if (-not $names) { Write-Skip 'No topics given'; return }
+
+    $current = gh api "repos/$OwnerRepo/topics" --jq '.names | join(",")' 2>$null
+    $global:LASTEXITCODE = 0
+    if ($current -and (($current -split ',' | Sort-Object) -join ',') -eq (($names | Sort-Object) -join ',')) {
+        Write-Skip "Topics already set ($current)"
+        return
+    }
+
+    # -f names[]=... repeats the field to build a JSON array.
+    # NB not $args - that is a PowerShell automatic variable.
+    $ghArgs = @('api', '--method', 'PUT', "repos/$OwnerRepo/topics")
+    foreach ($n in $names) { $ghArgs += @('-f', "names[]=$n") }
+    Invoke-ScaffoldGh -What 'Setting repo topics' -Arguments $ghArgs | Out-Null
+    Add-ScaffoldActivity
+    Write-Ok "Set topics: $($names -join ', ')"
+}
+
 function Enable-ScaffoldImmutableReleases {
     <#
         Enable immutable releases (locks release assets and their tags after publication).
@@ -1338,6 +1375,7 @@ Export-ModuleMember -Function @(
     'Set-ScaffoldActionsPermissions'
     'Enable-ScaffoldPrivateVulnReporting'
     'Set-ScaffoldCodecovSecret'
+    'Set-ScaffoldTopics'
     'Enable-ScaffoldImmutableReleases'
     'Enable-ScaffoldCodeql'
     'Get-ScaffoldSiblingUrl'

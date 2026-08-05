@@ -462,7 +462,7 @@ tags
 !.vscode/launch.json
 !.vscode/extensions.json
 !.vscode/*.code-snippets
-!*.code-workspace
+*.code-workspace
 
 # Built Visual Studio Code Extensions
 *.vsix
