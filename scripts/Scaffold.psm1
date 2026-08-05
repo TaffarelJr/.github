@@ -1,6 +1,6 @@
 #Requires -Version 7.0
 <#
-    Scaffolding.psm1
+    Scaffold.psm1
 
     Shared helpers for creating new repos derived from a template repo.
     Imported by New-Repo.ps1 in this same folder, which takes -Kind Template|Code.
@@ -11,7 +11,7 @@
 
     KEEP THIS FILE IDENTICAL AT EVERY LAYER. It is inherited by merge, so any per-layer
     edit becomes a conflict on every future template change. Layer-specific behaviour
-    belongs in additive Scaffolding-<NN>-<slug>.ps1 step files alongside it (see below).
+    belongs in additive Scaffold-<NN>-<slug>.ps1 step files alongside it (see below).
 
     Design goals
     ------------
@@ -46,11 +46,11 @@ function Get-ScaffoldOwner { return $script:ScaffoldOwner }
 <#
     Each layer contributes its own scaffolding steps as ADDITIVE files next to this one:
 
-        Scaffolding-10-dotnet.psm1    added by .template-dotnet
-        Scaffolding-20-nuget.psm1     added by .template-nuget
-        Scaffolding-20-winui.psm1     added by .template-winui   (sibling; never sees nuget's)
+        Scaffold-10-dotnet.psm1    added by .template-dotnet
+        Scaffold-20-nuget.psm1     added by .template-nuget
+        Scaffold-20-winui.psm1     added by .template-winui   (sibling; never sees nuget's)
 
-    Naming convention: Scaffolding-<NN>-<slug>.psm1, loaded in filename order, so <NN> is the
+    Naming convention: Scaffold-<NN>-<slug>.psm1, loaded in filename order, so <NN> is the
     layer tier. Each module exports helper functions for its descendants to reuse, PLUS exactly
     one entry point matching Invoke-*Scaffold:
 
@@ -74,6 +74,9 @@ function Get-ScaffoldOwner { return $script:ScaffoldOwner }
     and forcing the child to re-state the parent's logic. With one per layer, a child ADDS a
     file and never touches an inherited one, so template merges stay clean.
 
+    A layer module can call anything Scaffold.psm1 EXPORTS (Write-Ok, Invoke-ScaffoldGit,
+    Rename-ScaffoldToken, ...) - verified - but not its private internals.
+
     They are read from the SOURCE template (wherever New-Repo.ps1 is running from), not from the
     new repo - so a leaf still gets its ancestors' renames even though scaffolding deletes the
     leaf's own scripts/ folder. Base layers with nothing to customize contribute no file.
@@ -82,8 +85,8 @@ function Get-ScaffoldOwner { return $script:ScaffoldOwner }
 function Get-ScaffoldLayerModule {
     <# The layer modules contributed by this template chain, in load order. #>
     # Check the extension explicitly: a Windows -Filter of '*.psm1' can behave loosely, and the
-    # 'Scaffolding-' prefix already excludes this file itself.
-    return @(Get-ChildItem -Path $PSScriptRoot -Filter 'Scaffolding-*' -File -ErrorAction SilentlyContinue |
+    # 'Scaffold-' prefix already excludes this file itself.
+    return @(Get-ChildItem -Path $PSScriptRoot -Filter 'Scaffold-*' -File -ErrorAction SilentlyContinue |
             Where-Object { $_.Extension -eq '.psm1' } | Sort-Object Name)
 }
 
@@ -412,7 +415,7 @@ function Get-ScaffoldContext {
     }
     if ($Matches['owner'] -ne $script:ScaffoldOwner) {
         Write-Warn ("This repo's origin owner is '$($Matches['owner'])' but the configured owner is " +
-            "'$($script:ScaffoldOwner)'. Update `$script:ScaffoldOwner in Scaffolding.psm1 if that's wrong.")
+            "'$($script:ScaffoldOwner)'. Update `$script:ScaffoldOwner in Scaffold.psm1 if that's wrong.")
     }
     [pscustomobject]@{
         SourceOwner     = $Matches['owner']
@@ -1273,7 +1276,7 @@ function Invoke-ScaffoldLayerCommit {
     )
     $layers = Import-ScaffoldLayerModule
     if (-not $layers) {
-        Write-Skip 'No Scaffolding-*.psm1 layers in this chain - nothing template-specific to apply'
+        Write-Skip 'No Scaffold-*.psm1 layers in this chain - nothing template-specific to apply'
         return
     }
     $message = 'chore: apply template-specific customizations'
@@ -1386,6 +1389,8 @@ Export-ModuleMember -Function @(
     'Write-Info'
     'Write-Detail'
 
+    'Invoke-ScaffoldGit'
+    'Invoke-ScaffoldGh'
     'Get-ScaffoldOwner'
     'Write-ScaffoldStep'
     'Write-ScaffoldField'
