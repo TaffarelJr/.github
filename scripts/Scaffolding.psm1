@@ -864,14 +864,24 @@ function Set-ScaffoldTemplateSyncConfig {
     $httpsUrl = "https://github.com/$TemplateOwnerRepo.git"
     $raw = $raw -replace '(?m)^([ \t]*TEMPLATE_REPO_URL:[ \t]*)[^\r\n]*', "`${1}$httpsUrl"
 
-    # Turn on the nightly schedule.
-    $raw = $raw.Replace('  # schedule:', '  schedule:').Replace('  #   - cron: "0 0 * * *"', '    - cron: "0 0 * * *"')
+    # Uncomment the schedule block. Match the SHAPE of the lines, not a specific cron
+    # expression: hard-coding '0 0 * * *' silently uncommented 'schedule:' while leaving the
+    # cron line commented on a template whose cadence had been changed, producing a
+    # 'schedule:' key with no entries - invalid workflow YAML that GitHub then refuses.
+    # [^\r\n] rather than .* so the trailing CR survives (see the retarget above).
+    # NB no '$' anchor: in multiline mode '$' matches before the LF, but CRLF puts a CR there
+    # first, so an anchored pattern silently fails to match and only half the block gets
+    # uncommented - which is just as invalid as not uncommenting it at all.
+    $raw = $raw -replace '(?m)^([ \t]*)#[ \t]*(schedule:)', '$1$2'
+    $raw = $raw -replace '(?m)^([ \t]*)#[ \t]*(- cron:[^\r\n]*)', '$1  $2'
 
     if ($raw -eq $original) { Write-Skip 'Template Sync already targets the parent and is scheduled'; return }
     $raw | Set-Content -NoNewline $f
     Write-Ok 'Configured Template Sync'
     Write-Detail "source   : $httpsUrl"
-    Write-Detail 'schedule : nightly at midnight UTC'
+    # Report the cron the template actually declares rather than assuming a cadence.
+    $cronLine = ([regex]::Match($raw, '(?m)^[ \t]*- cron:[ \t]*(.+?)[ \t]*\r?$')).Groups[1].Value
+    Write-Detail "schedule : $(if ($cronLine) { $cronLine } else { '(no cron found)' })"
 }
 
 function Remove-ScaffoldScripts {
