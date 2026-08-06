@@ -646,7 +646,12 @@ function Enable-ScaffoldCodeql {
     if ($LASTEXITCODE -eq 0 -and $state -eq 'configured') {
         Write-Skip 'CodeQL default setup already configured'; return
     }
-    gh api --method PUT "repos/$OwnerRepo/code-scanning/default-setup" -f 'state=configured' --silent 2>$null
+    # PATCH, not PUT. This endpoint is documented as
+        #   PATCH /repos/{owner}/{repo}/code-scanning/default-setup
+    # and GitHub simply does not route PUT, returning a bare 404 with the GENERIC
+    # docs.github.com/rest body - which reads exactly like "repo not eligible yet" and sent me
+    # looking for provisioning delays. GET uses the same path, so the path was never the problem.
+    gh api --method PATCH "repos/$OwnerRepo/code-scanning/default-setup" -f 'state=configured' --silent 2>$null
     $enabled = ($LASTEXITCODE -eq 0)
     $global:LASTEXITCODE = 0   # this failure is tolerated; don't leak it to a later Assert-LastExit
     if ($enabled) {
@@ -1251,7 +1256,7 @@ function Invoke-ScaffoldGatedCommit {
     param(
         [Parameter(Mandatory)][string]$RepoPath,
         [Parameter(Mandatory)][string]$Message,
-        [Parameter(Mandatory)][string[]]$Paths,
+        [string[]]$Paths,
         [string]$TemplateBranch = 'main',
         [Parameter(Mandatory)][scriptblock]$Body
     )
@@ -1259,8 +1264,45 @@ function Invoke-ScaffoldGatedCommit {
         Write-Skip "'$Message' already in history"
         return
     }
+
+    if ($Paths) {
+        & $Body
+        Invoke-ScaffoldCommit -RepoPath $RepoPath -Message $Message -Paths $Paths
+        return
+    }
+
+    # No -Paths given: work out what the body actually touched and stage exactly that. Better
+    # than a hand-maintained list for anything repo-wide (a placeholder rename can move files
+    # anywhere), since a path missing from such a list gets changed on disk but left out of the
+    # commit - and worse than `git add -A`, because the developer's own uncommitted work is
+    # excluded by construction.
+    $before = @(Get-ScaffoldDirtyPath -RepoPath $RepoPath)
     & $Body
-    Invoke-ScaffoldCommit -RepoPath $RepoPath -Message $Message -Paths $Paths
+    $touched = @(Get-ScaffoldDirtyPath -RepoPath $RepoPath | Where-Object { $_ -notin $before })
+    if (-not $touched) { Write-Skip "Nothing changed for: $Message"; return }
+    Invoke-ScaffoldCommit -RepoPath $RepoPath -Message $Message -Paths $touched
+}
+
+function Get-ScaffoldDirtyPath {
+    <#
+        Paths git currently reports as changed, one per entry.
+
+        A rename shows up as 'R  old -> new'; BOTH sides are returned, because staging only the
+        new path would leave the deletion of the old one out of the commit.
+    #>
+    param([Parameter(Mandatory)][string]$RepoPath)
+    $lines = @(git -C $RepoPath status --porcelain 2>$null)
+    $global:LASTEXITCODE = 0
+    $paths = [System.Collections.Generic.List[string]]::new()
+    foreach ($line in $lines) {
+        if ($line.Length -le 3) { continue }
+        $rest = $line.Substring(3)
+        foreach ($p in ($rest -split ' -> ')) {
+            $t = $p.Trim().Trim('"')
+            if ($t) { $paths.Add($t) }
+        }
+    }
+    return $paths.ToArray()
 }
 
 function Invoke-ScaffoldLayer {
@@ -1453,6 +1495,7 @@ Export-ModuleMember -Function @(
     'Invoke-ScaffoldGatedCommit'
     'Invoke-ScaffoldLayer'
     'Rename-ScaffoldToken'
+    'Get-ScaffoldDirtyPath'
     'Get-ScaffoldLayerModule'
     'Import-ScaffoldLayerModule'
     'Remove-ScaffoldLayerModule'

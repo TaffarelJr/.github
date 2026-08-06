@@ -146,9 +146,25 @@ Layers are read from the **source** template — wherever `New-Repo.ps1` is runn
 leaf still gets its ancestors' renames even though scaffolding deletes the leaf's own
 `scripts/` folder. Base layers with nothing to customize contribute no file.
 
-All their changes land in one commit, `chore: apply template-specific customizations`. You
-don't declare which paths you touch: the module diffs `git status` around the calls and stages
-exactly that set, so unrelated uncommitted work can never be swept in.
+**Each layer owns its own commits.** A layer that does several unrelated things should make
+several commits, by calling the exported `Invoke-ScaffoldGatedCommit` itself:
+
+```powershell
+Invoke-ScaffoldGatedCommit -RepoPath $Context.RepoPath `
+    -TemplateBranch $Context.TemplateBranch `
+    -Message 'chore: rename the placeholder project' -Body { ... }
+```
+
+Each commit is then independently gated, so a resumed run skips only what's already done.
+
+`-Paths` is **optional**. Omit it and the body's changes are detected by diffing `git status`
+around the call, staging exactly what it touched — which is what you want for anything
+repo-wide such as a placeholder rename, where a hand-maintained path list would silently
+leave renamed files out of the commit. Either way your own uncommitted work is excluded by
+construction, so it can never be swept in.
+
+If a layer changes files and commits nothing, the run warns — every later step stages an
+explicit pathspec, so those changes would otherwise be left behind for good.
 
 ### Settings inheritance
 
