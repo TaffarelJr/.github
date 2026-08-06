@@ -639,24 +639,141 @@ function Enable-ScaffoldImmutableReleases {
         -Steps @("https://github.com/$OwnerRepo/settings  →  General  →  check 'Enable release immutability'")
 }
 
-function Enable-ScaffoldCodeql {
-    <# Enable CodeQL default setup. Call AFTER the first push (needs code to detect languages). #>
-    param([Parameter(Mandatory)][string]$OwnerRepo)
-    $state = gh api "repos/$OwnerRepo/code-scanning/default-setup" --jq '.state' 2>$null
-    if ($LASTEXITCODE -eq 0 -and $state -eq 'configured') {
-        Write-Skip 'CodeQL default setup already configured'; return
+# CodeQL languages this run should analyse. Layers add to it; Enable-ScaffoldCodeql applies the
+# union at the end. Seeded with 'actions' because every repo here carries workflows AND the
+# inherited "Status checks must pass" ruleset requires the `Analyze (actions)` check - dropping
+# it would leave that check permanently pending and block every PR.
+$script:CodeqlLanguages = [System.Collections.Generic.HashSet[string]]::new(
+    [string[]]@('actions'), [System.StringComparer]::OrdinalIgnoreCase)
+
+# The complete set GitHub accepts for code scanning default setup.
+$script:CodeqlValidLanguages = @(
+    'actions'                 # GitHub Actions workflows
+    'c-cpp'                   # C and C++
+    'csharp'                  # C#
+    'go'                      # Go
+    'java-kotlin'             # Java and Kotlin
+    'javascript-typescript'   # JavaScript and TypeScript
+    'python'                  # Python
+    'ruby'                    # Ruby
+    'swift'                   # Swift
+)
+
+function Add-ScaffoldCodeqlLanguage {
+    <#
+        Register CodeQL languages this template needs, ON TOP OF whatever ancestor layers already
+        asked for. Call it from a layer's entry point:
+
+            Add-ScaffoldCodeqlLanguage csharp        # .template-dotnet
+            Add-ScaffoldCodeqlLanguage python        # .template-python
+
+        Additive by design: a child never has to restate its parents' languages, and never
+        removes them.
+
+        VALID VALUES - the complete set GitHub accepts:
+            actions                  GitHub Actions workflows
+            c-cpp                    C and C++
+            csharp                   C#
+            go                       Go
+            java-kotlin              Java and Kotlin
+            javascript-typescript    JavaScript and TypeScript
+            python                   Python
+            ruby                     Ruby
+            swift                    Swift
+
+        Declaring beats relying on GitHub's auto-detection, which only looks at what exists the
+        moment default setup is switched on. A template enabled while still empty would
+        otherwise stay stuck on the languages it had then.
+    #>
+    param([Parameter(Mandatory)][string[]]$Language)
+    foreach ($lang in $Language) {
+        $l = $lang.Trim()
+        if ($l -notin $script:CodeqlValidLanguages) {
+            throw ("'$l' is not a CodeQL language. Valid values: " +
+                ($script:CodeqlValidLanguages -join ', '))
+        }
+        if ($script:CodeqlLanguages.Add($l)) { Write-Detail "CodeQL will analyse '$l'" }
     }
+}
+
+function Get-ScaffoldCodeqlLanguage {
+    <# The languages registered so far, for inspection or testing. #>
+    return @($script:CodeqlLanguages | Sort-Object)
+}
+
+function Enable-ScaffoldCodeql {
+    <#
+        Enable CodeQL default setup, analysing every language the chain registered via
+        Add-ScaffoldCodeqlLanguage. Call AFTER the first push - the repo needs content.
+
+        Unlike the other settings helpers this does NOT simply skip when already configured: a
+        layer may have added a language since, so it extends the existing list instead. What is
+        already configured is always kept, so a language enabled by hand is never removed.
+    #>
+    param([Parameter(Mandatory)][string]$OwnerRepo)
+
+    $existing = @(gh api "repos/$OwnerRepo/code-scanning/default-setup" --jq '.languages[]?' 2>$null)
+    $state = gh api "repos/$OwnerRepo/code-scanning/default-setup" --jq '.state' 2>$null
+    $global:LASTEXITCODE = 0
+
+    $wanted = [System.Collections.Generic.HashSet[string]]::new(
+        [string[]]$existing, [System.StringComparer]::OrdinalIgnoreCase)
+    foreach ($l in $script:CodeqlLanguages) { [void]$wanted.Add($l) }
+    $langs = @($wanted | Sort-Object)
+
+    if ($state -eq 'configured' -and -not (@($langs | Where-Object { $_ -notin $existing }))) {
+        Write-Skip "CodeQL already analysing: $($langs -join ', ')"
+        return
+    }
+
     # PATCH, not PUT. This endpoint is documented as
-        #   PATCH /repos/{owner}/{repo}/code-scanning/default-setup
+    #   PATCH /repos/{owner}/{repo}/code-scanning/default-setup
     # and GitHub simply does not route PUT, returning a bare 404 with the GENERIC
     # docs.github.com/rest body - which reads exactly like "repo not eligible yet" and sent me
     # looking for provisioning delays. GET uses the same path, so the path was never the problem.
-    gh api --method PATCH "repos/$OwnerRepo/code-scanning/default-setup" -f 'state=configured' --silent 2>$null
+    $ghArgs = @('api', '--method', 'PATCH', "repos/$OwnerRepo/code-scanning/default-setup",
+        '-f', 'state=configured')
+    foreach ($l in $langs) { $ghArgs += @('-f', "languages[]=$l") }
+    & gh @ghArgs --silent 2>$null | Out-Null
     $enabled = ($LASTEXITCODE -eq 0)
     $global:LASTEXITCODE = 0   # this failure is tolerated; don't leak it to a later Assert-LastExit
+
+    if (-not $enabled) {
+        # GitHub rejects a language that isn't actually in the repo:
+        #   422 "One or more languages you selected are not present in the repository."
+        # Entirely expected for a template that declares 'csharp' before it has any C#. The
+        # registered languages are an INTENT, not a promise - fall back to analysing whatever is
+        # really there, and a later run picks the rest up once the code exists.
+        & gh api --method PATCH "repos/$OwnerRepo/code-scanning/default-setup" `
+            -f 'state=configured' --silent 2>$null | Out-Null
+        $enabled = ($LASTEXITCODE -eq 0)
+        $global:LASTEXITCODE = 0
+        if ($enabled) {
+            $now = @(gh api "repos/$OwnerRepo/code-scanning/default-setup" --jq '.languages[]?' 2>$null)
+            $global:LASTEXITCODE = 0
+            $missing = @($langs | Where-Object { $_ -notin $now })
+            $changed = @($now | Where-Object { $_ -notin $existing }) -or -not $existing
+            if ($changed) {
+                Add-ScaffoldActivity
+                Write-Ok "CodeQL default setup enabled: $(($now | Sort-Object) -join ', ')"
+            }
+            else {
+                # Nothing actually moved: the only outstanding languages are ones the repo does
+                # not contain. Report it as a skip so re-runs stay quiet and, crucially, so the
+                # activity counter still reads zero for an already-scaffolded repo.
+                Write-Skip "CodeQL already analysing: $(($now | Sort-Object) -join ', ')"
+            }
+            if ($missing) {
+                Write-Detail "not in the repo yet, so not enabled: $($missing -join ', ')"
+                Write-Detail 're-run once that code exists and they will be added'
+            }
+            return
+        }
+    }
+
     if ($enabled) {
         Add-ScaffoldActivity
-        Write-Ok 'CodeQL default setup enabled'
+        Write-Ok "CodeQL default setup enabled: $($langs -join ', ')"
     }
     else {
         # Observed on a brand-new repo: GET reports 'not-configured' but PUT 404s for a while
@@ -1514,6 +1631,8 @@ Export-ModuleMember -Function @(
     'Set-ScaffoldCodecovSecret'
     'Initialize-ScaffoldTopics'
     'Enable-ScaffoldImmutableReleases'
+    'Add-ScaffoldCodeqlLanguage'
+    'Get-ScaffoldCodeqlLanguage'
     'Enable-ScaffoldCodeql'
     'Get-ScaffoldSiblingUrl'
     'Get-ScaffoldTemplateChain'
