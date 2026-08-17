@@ -15,6 +15,7 @@ Set-StrictMode -Version Latest
 #───────────────────────────────────────────────────────────────────────────────
 
 $script:RepoOwner = 'TaffarelJr'
+$script:TemplateBranch = 'main'
 
 function Get-RepoOwner {
     <#
@@ -22,6 +23,14 @@ function Get-RepoOwner {
         The GitHub account that owns every template layer and every repo derived from one.
     #>
     return $script:RepoOwner
+}
+
+function Get-TemplateBranch {
+    <#
+    .SYNOPSIS
+        The branch every template is tracked on. Always 'main'.
+    #>
+    return $script:TemplateBranch
 }
 
 #───────────────────────────────────────────────────────────────────────────────
@@ -770,8 +779,7 @@ function Set-ScaffoldRemotesAndConfig {
     #>
     param(
         [Parameter(Mandatory)][string]$RepoPath,
-        [Parameter(Mandatory)][string]$TemplateUrl,
-        [string]$TemplateBranch = 'main'
+        [Parameter(Mandatory)][string]$TemplateUrl
     )
     git -C $RepoPath config remote.pushdefault origin | Out-Null
     $remotes = git -C $RepoPath remote 2>$null
@@ -786,8 +794,8 @@ function Set-ScaffoldRemotesAndConfig {
 
     git -C $RepoPath show-ref --verify --quiet refs/heads/main
     if ($LASTEXITCODE -ne 0) {
-        Invoke-ScaffoldGit -What "Creating main from template/$TemplateBranch" `
-            -RepoPath $RepoPath -Arguments @('checkout', '-B', 'main', "template/$TemplateBranch") | Out-Null
+        Invoke-ScaffoldGit -What "Creating main from template/$($script:TemplateBranch)" `
+            -RepoPath $RepoPath -Arguments @('checkout', '-B', 'main', "template/$($script:TemplateBranch)") | Out-Null
     }
     else {
         $branch = git -C $RepoPath rev-parse --abbrev-ref HEAD 2>$null
@@ -802,8 +810,7 @@ function Initialize-ScaffoldClone {
     param(
         [Parameter(Mandatory)][string]$OriginUrl,
         [Parameter(Mandatory)][string]$TargetPath,
-        [Parameter(Mandatory)][string]$TemplateUrl,
-        [string]$TemplateBranch = 'main'
+        [Parameter(Mandatory)][string]$TemplateUrl
     )
     if (Test-Path $TargetPath) {
         if (-not (Test-Path (Join-Path $TargetPath '.git'))) {
@@ -818,7 +825,7 @@ function Initialize-ScaffoldClone {
         Write-Ok "Cloned $OriginUrl"
         Write-Detail "-> $TargetPath"
     }
-    Set-ScaffoldRemotesAndConfig -RepoPath $TargetPath -TemplateUrl $TemplateUrl -TemplateBranch $TemplateBranch
+    Set-ScaffoldRemotesAndConfig -RepoPath $TargetPath -TemplateUrl $TemplateUrl
     Write-Ok "'template' remote -> $TemplateUrl; on branch main"
 }
 
@@ -833,15 +840,14 @@ function Test-ScaffoldCommitExists {
     #>
     param(
         [Parameter(Mandatory)][string]$RepoPath,
-        [Parameter(Mandatory)][string]$Message,
-        [string]$TemplateBranch = 'main'
+        [Parameter(Mandatory)][string]$Message
     )
-    git -C $RepoPath rev-parse --verify --quiet "template/$TemplateBranch" | Out-Null
+    git -C $RepoPath rev-parse --verify --quiet "template/$($script:TemplateBranch)" | Out-Null
     if ($LASTEXITCODE -ne 0) { $global:LASTEXITCODE = 0; return $false }   # no template ref yet
 
     # Exact subject match, so one group's message can't satisfy another's gate by prefix.
     # A reverted step still reads as done, since the original subject remains in the range.
-    $subjects = git -C $RepoPath log --format='%s' "template/$TemplateBranch..HEAD" 2>$null
+    $subjects = git -C $RepoPath log --format='%s' "template/$($script:TemplateBranch)..HEAD" 2>$null
     return [bool](@($subjects) -ceq $Message)
 }
 
@@ -1246,10 +1252,9 @@ function Invoke-ScaffoldGatedCommit {
         [Parameter(Mandatory)][string]$RepoPath,
         [Parameter(Mandatory)][string]$Message,
         [string[]]$Paths,
-        [string]$TemplateBranch = 'main',
         [Parameter(Mandatory)][scriptblock]$Body
     )
-    if (Test-ScaffoldCommitExists -RepoPath $RepoPath -Message $Message -TemplateBranch $TemplateBranch) {
+    if (Test-ScaffoldCommitExists -RepoPath $RepoPath -Message $Message) {
         Write-Skip "'$Message' already in history"
         return
     }
@@ -1299,7 +1304,7 @@ function Invoke-ScaffoldLayer {
         Layers commit their own work via Invoke-ScaffoldGatedCommit; this only warns if one
         leaves changes uncommitted, since every later step stages an explicit pathspec.
     .PARAMETER Context
-        RepoPath, RepoName, Kind, OwnerRepo, SourceOwnerRepo, TemplateBranch.
+        RepoPath, RepoName, Kind, OwnerRepo, SourceOwnerRepo.
     #>
     param(
         [Parameter(Mandatory)][string]$RepoPath,
@@ -1463,6 +1468,7 @@ Export-ModuleMember -Function @(
     'Invoke-ScaffoldGit'
     'Invoke-ScaffoldGh'
     'Get-RepoOwner'
+    'Get-TemplateBranch'
     'Write-ScaffoldStep'
     'Write-ScaffoldField'
     'Show-ScaffoldSummary'

@@ -46,8 +46,6 @@
     settings.yml topics (comma-separated).
 .PARAMETER CodecovToken
     CODECOV_TOKEN secret value. Empty = skip. Prompted without echo when omitted.
-.PARAMETER TemplateBranch
-    Branch on the template remote to base 'main' on. Default: main.
 .PARAMETER SkipManualPrompts
     Skip all interactive prompts and the confirmation gate (unattended runs).
 
@@ -74,7 +72,6 @@ param(
     [string]$Homepage,
     [string]$Topics,
     [string]$CodecovToken,
-    [string]$TemplateBranch = 'main',
     [switch]$SkipManualPrompts
 )
 
@@ -146,13 +143,13 @@ Set-ScaffoldCodecovSecret           -OwnerRepo $ownerRepo -Token $CodecovToken
 # ── Step 3: clone + remotes ───────────────────────────────────────────────────
 Write-ScaffoldStep '3' 'Clone the new repo'
 $originUrl = Get-ScaffoldNewRepoUrl -Context $ctx -RepoName $repo   # preserves origin style
-Initialize-ScaffoldClone -OriginUrl $originUrl -TargetPath $targetPath -TemplateUrl $ctx.SourceUrl -TemplateBranch $TemplateBranch
+Initialize-ScaffoldClone -OriginUrl $originUrl -TargetPath $targetPath -TemplateUrl $ctx.SourceUrl
 
 # ── Step 4: drop what belongs only to the parent ──────────────────────────────
 # Deletions run BEFORE the README pass, so the README stops documenting files that
 # have already gone rather than the other way round.
 Write-ScaffoldStep '4' 'Remove template-only files'
-Invoke-ScaffoldGatedCommit -RepoPath $targetPath -TemplateBranch $TemplateBranch `
+Invoke-ScaffoldGatedCommit -RepoPath $targetPath `
     -Message 'chore: remove template-only files' -Paths @('.github', 'README.md', 'scripts') -Body {
     Remove-ScaffoldTemplateOnlyFiles -RepoPath $targetPath
     if ($Kind -eq 'Code') { Remove-ScaffoldScripts -RepoPath $targetPath }
@@ -161,7 +158,7 @@ Invoke-ScaffoldGatedCommit -RepoPath $targetPath -TemplateBranch $TemplateBranch
 
 # ── Step 5: point this repo's docs at itself ──────────────────────────────────
 Write-ScaffoldStep '5' 'Retarget template references'
-Invoke-ScaffoldGatedCommit -RepoPath $targetPath -TemplateBranch $TemplateBranch `
+Invoke-ScaffoldGatedCommit -RepoPath $targetPath `
     -Message 'chore: retarget template references' `
     -Paths @('.github/ISSUE_TEMPLATE', 'CONTRIBUTING.md', 'SECURITY.md', 'SUPPORT.md') -Body {
     Update-ScaffoldReferences -RepoPath $targetPath -OldOwnerRepo $ctx.SourceOwnerRepo -NewOwnerRepo $ownerRepo
@@ -169,7 +166,7 @@ Invoke-ScaffoldGatedCommit -RepoPath $targetPath -TemplateBranch $TemplateBranch
 
 # ── Step 6: start syncing from the immediate parent ───────────────────────────
 Write-ScaffoldStep '6' 'Enable Template Sync'
-Invoke-ScaffoldGatedCommit -RepoPath $targetPath -TemplateBranch $TemplateBranch `
+Invoke-ScaffoldGatedCommit -RepoPath $targetPath `
     -Message 'ci: enable the template sync schedule' `
     -Paths @('.github/workflows/template-sync.yml') -Body {
     Set-ScaffoldTemplateSyncConfig -RepoPath $targetPath -TemplateOwnerRepo $ctx.SourceOwnerRepo
@@ -183,12 +180,11 @@ Invoke-ScaffoldLayer -RepoPath $targetPath -Context @{
     Kind            = $Kind
     OwnerRepo       = $ownerRepo
     SourceOwnerRepo = $ctx.SourceOwnerRepo
-    TemplateBranch  = $TemplateBranch   # layers need this for their own gated commits
 }
 
 # ── Step 8: this repo's own settings ──────────────────────────────────────────
 Write-ScaffoldStep '8' 'Customize repo settings'
-Invoke-ScaffoldGatedCommit -RepoPath $targetPath -TemplateBranch $TemplateBranch `
+Invoke-ScaffoldGatedCommit -RepoPath $targetPath `
     -Message 'chore: customize repo settings' -Paths @('.github/settings.yml') -Body {
     # Inherit from the repo we derived from (_extends resolves recursively up the chain).
     Write-ScaffoldSettings -RepoPath $targetPath -Kind $Kind -Name $repo `

@@ -46,8 +46,6 @@ Parameters:
 - `-Topics` — the repo topics for `settings.yml` (comma-separated).
 - `-CodecovToken` — the `CODECOV_TOKEN` secret value
   (empty to skip; prompted without echo when omitted).
-- `-TemplateBranch` — the template-remote branch to base `main` on
-  (default: `main`).
 - `-SkipManualPrompts` — skip every prompt and the confirmation gate;
   required for a truly unattended run.
 
@@ -151,7 +149,6 @@ several commits, by calling the exported `Invoke-ScaffoldGatedCommit` itself:
 
 ```powershell
 Invoke-ScaffoldGatedCommit -RepoPath $Context.RepoPath `
-    -TemplateBranch $Context.TemplateBranch `
     -Message 'chore: rename the placeholder project' -Body { ... }
 ```
 
