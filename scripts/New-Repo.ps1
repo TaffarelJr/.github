@@ -36,8 +36,6 @@
     For -Kind Template the '.template-' prefix is optional: 'dotnet' and '.template-dotnet'
     both produce '.template-dotnet'.
 
-.PARAMETER GhAccount
-    gh account that admins the owner. Switched to & verified first. Blank = use current.
 .PARAMETER Description
     settings.yml description (single line).
 .PARAMETER Homepage
@@ -58,7 +56,7 @@
     Creates .template-dotnet; prompts only for the rest.
 
 .EXAMPLE
-    ./scripts/New-Repo.ps1 -Kind Code -Name my-service -GhAccount TaffarelJr `
+    ./scripts/New-Repo.ps1 -Kind Code -Name my-service `
         -Description 'My service' -Homepage '' -Topics 'dotnet, service' `
         -CodecovToken $env:CODECOV -SkipManualPrompts
     Fully unattended.
@@ -67,7 +65,6 @@
 param(
     [ValidateSet('Template', 'Code')][string]$Kind,
     [string]$Name,
-    [string]$GhAccount,
     [string]$Description,
     [string]$Homepage,
     [string]$Topics,
@@ -114,8 +111,7 @@ Write-ScaffoldField ''                $ctx.SourceRoot
 Write-ScaffoldField "New $($Kind.ToLowerInvariant()) repo" $ownerRepo
 Write-ScaffoldField 'Clone to'        $targetPath
 
-$GhAccount = Resolve-ScaffoldInput -Name GhAccount -Bound $bound -Value $GhAccount -Prompt "gh account that admins '$owner'" -Default $owner
-Use-ScaffoldGhAccount -GhAccount $GhAccount -ProbeOwnerRepo $ctx.SourceOwnerRepo
+Use-ScaffoldGhAccount -ProbeOwnerRepo $ctx.SourceOwnerRepo
 
 $Description = Resolve-ScaffoldInput -Name Description -Bound $bound -Value $Description -Prompt 'Repo description (single line)'
 $Homepage = Resolve-ScaffoldInput -Name Homepage    -Bound $bound -Value $Homepage    -Prompt 'Homepage URL (optional - blank to omit)'

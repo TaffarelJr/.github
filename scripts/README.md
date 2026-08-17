@@ -27,7 +27,7 @@ So you can run fully interactive, partially pre-filled, or fully unattended.
 ./scripts/New-Repo.ps1 -Kind Template -Name dotnet
 
 # fully unattended - no prompts at all (scriptable / batchable)
-./scripts/New-Repo.ps1 -Kind Code -Name my-service -GhAccount TaffarelJr `
+./scripts/New-Repo.ps1 -Kind Code -Name my-service `
     -Description 'My service' -Homepage '' -Topics 'dotnet, service' `
     -CodecovToken $env:CODECOV -SkipManualPrompts
 ```
@@ -37,9 +37,6 @@ Parameters:
 - `-Kind` — `Template` (a new layer) or `Code` (a leaf repo). Default: `Code`.
 - `-Name` — the new repo name, in kebab-case. For `-Kind Template` the `.template-`
   prefix is optional: `dotnet` and `.template-dotnet` both give `.template-dotnet`.
-- `-GhAccount` — the gh account that admins the owner;
-  the script switches to it and verifies admin access first
-  (blank = use the current account).
 - `-Description` — the repo description for `settings.yml`
   (must be a single line).
 - `-Homepage` — the repo homepage URL for `settings.yml` (empty to omit it).

@@ -90,9 +90,14 @@ $script:TemplateOnlyFiles = @(
 # Internal state & logging
 #───────────────────────────────────────────────────────────────────────────────
 
-$script:SkipManualPrompts = $false                                   # suppress interactive prompts
-$script:CurrentStep = ''                                             # for the failure banner
+$script:SkipManualPrompts = $false
+$script:CurrentStep = ''
 $script:CurrentStepTitle = ''
+
+# gh state pushed by Use-ScaffoldGhAccount and popped by Reset-ScaffoldGhAccount.
+$script:GhStatePushed = $false
+$script:PriorGhToken = $null
+$script:PriorGhAccount = $null
 $script:ManualItems = [System.Collections.Generic.List[object]]::new()
 
 # Two DIFFERENT axes, deliberately kept apart:
@@ -389,76 +394,107 @@ function Get-ScaffoldContext {
     }
 }
 
+function Get-ScaffoldActiveGhAccount {
+    <#
+    .SYNOPSIS
+        The login gh is currently authenticating as, or $null if the call failed.
+    .DESCRIPTION
+        gh writes error bodies to STDOUT, so a failed call returns JSON rather than nothing -
+        which would otherwise be captured and later fed to `gh auth switch --user`. Guard on the
+        exit code, then reject anything with JSON punctuation in it. Deny-listing rather than
+        allow-listing, because logins legitimately contain characters like the underscore in
+        enterprise-managed accounts.
+    #>
+    $login = gh api user --jq .login 2>$null
+    $ok = ($LASTEXITCODE -eq 0)
+    $global:LASTEXITCODE = 0
+    if (-not $ok -or -not $login) { return $null }
+    $login = ($login | Out-String).Trim()
+    if (-not $login -or $login -match '[\s{}\[\]":,]') { return $null }
+    return $login
+}
+
 function Use-ScaffoldGhAccount {
     <#
     .SYNOPSIS
-        Points this process's gh calls at $GhAccount and verifies it has admin access.
+        Points this process's gh calls at the repo owner and verifies it has admin access.
     .DESCRIPTION
-        Borrows that account's token into $env:GH_TOKEN rather than running `gh auth switch`,
-        which would repoint every other shell on the machine. Pair with Reset-ScaffoldGhAccount.
-    .PARAMETER GhAccount
-        Blank to use whichever account is already active.
+        Borrows the owner's token into $env:GH_TOKEN rather than running `gh auth switch`, which
+        would repoint every other shell on the machine. Records any prior GH_TOKEN and active
+        account first, so Reset-ScaffoldGhAccount can put both back exactly as they were.
     #>
-    param([string]$GhAccount, [Parameter(Mandatory)][string]$ProbeOwnerRepo)
+    param([Parameter(Mandatory)][string]$ProbeOwnerRepo)
 
-    if ($GhAccount) {
-        # Whatever is active now (probably a work account) must still be active when we finish.
-        $previouslyActive = gh api user --jq .login 2>$null
+    $account = $script:RepoOwner
+
+    # Push the state we are about to change, so the pop can be exact rather than approximate.
+    $script:PriorGhToken = $env:GH_TOKEN
+    $script:PriorGhAccount = Get-ScaffoldActiveGhAccount
+    $script:GhStatePushed = $true
+
+    $token = gh auth token --user $account 2>$null
+    if ($LASTEXITCODE -ne 0 -or -not $token) {
+        $global:LASTEXITCODE = 0
+        if ($script:SkipManualPrompts) {
+            throw ("No stored credentials for gh account '$account', and prompts are suppressed. " +
+                'Run: gh auth login   (then re-run unattended.)')
+        }
+        Write-Warn "No stored credentials for gh account '$account' - starting 'gh auth login'"
+        Write-Detail "sign in as '$account'; your other accounts stay logged in"
+        gh auth login --hostname github.com
+        if ($LASTEXITCODE -ne 0) { $global:LASTEXITCODE = 0; throw "'gh auth login' did not complete." }
         $global:LASTEXITCODE = 0
 
-        $token = gh auth token --user $GhAccount 2>$null
+        $token = gh auth token --user $account 2>$null
         if ($LASTEXITCODE -ne 0 -or -not $token) {
             $global:LASTEXITCODE = 0
-            if ($script:SkipManualPrompts) {
-                throw ("No stored credentials for gh account '$GhAccount', and prompts are " +
-                    "suppressed. Run: gh auth login   (then re-run unattended.)")
-            }
-            # First run on a new machine: walk the user through login, then put things back.
-            Write-Warn "No stored credentials for gh account '$GhAccount' - starting 'gh auth login'"
-            Write-Detail "sign in as '$GhAccount'; your other accounts stay logged in"
-            gh auth login --hostname github.com
-            if ($LASTEXITCODE -ne 0) { $global:LASTEXITCODE = 0; throw "'gh auth login' did not complete." }
-            $global:LASTEXITCODE = 0
-
-            # gh makes a freshly logged-in account active; restore what was active before.
-            if ($previouslyActive) {
-                gh auth switch --user $previouslyActive 2>$null | Out-Null
-                $global:LASTEXITCODE = 0
-                Write-Ok "Restored '$previouslyActive' as the active gh account"
-            }
-            $token = gh auth token --user $GhAccount 2>$null
-            if ($LASTEXITCODE -ne 0 -or -not $token) {
-                $global:LASTEXITCODE = 0
-                throw "Still no credentials for '$GhAccount' - did you sign in as a different account?"
-            }
-            $global:LASTEXITCODE = 0
+            throw "Still no credentials for '$account' - did you sign in as a different account?"
         }
-        $env:GH_TOKEN = $token.Trim()
-        Write-Ok "Using gh account '$GhAccount' for this run only (active account untouched)"
+        $global:LASTEXITCODE = 0
     }
+    $env:GH_TOKEN = $token.Trim()
+    Write-Ok "Using gh account '$account' for this run only"
 
-    $active = (gh api user --jq .login 2>$null)
-    if (-not $active) { $global:LASTEXITCODE = 0; throw "Not authenticated with gh. Run 'gh auth login' first." }
-    $global:LASTEXITCODE = 0
+    $active = Get-ScaffoldActiveGhAccount
+    if (-not $active) { throw "Not authenticated with gh. Run 'gh auth login' first." }
 
     # Admin probe: being logged in is not the same as having the scopes/permissions we need.
     gh api "repos/$ProbeOwnerRepo/actions/permissions/workflow" --silent 2>$null | Out-Null
     $ok = ($LASTEXITCODE -eq 0)
     $global:LASTEXITCODE = 0
     if (-not $ok) {
-        throw ("Account '$active' lacks admin access to '$ProbeOwnerRepo'. Pass -GhAccount for the " +
-            'owning account, or if it is a scope issue run: ' +
-            'gh auth refresh -h github.com -s admin:repo_hook,workflow,security_events')
+        throw ("Account '$active' lacks admin access to '$ProbeOwnerRepo'. If it is a scope issue " +
+            'run: gh auth refresh -h github.com -s admin:repo_hook,workflow,security_events')
     }
     Write-Ok "Admin access confirmed (gh account: $active)"
 }
 
 function Reset-ScaffoldGhAccount {
-    <# Drop the borrowed token so the shell goes back to its normal active account. #>
-    if ($env:GH_TOKEN) {
-        Remove-Item Env:GH_TOKEN -ErrorAction SilentlyContinue
-        Write-Info 'Released the borrowed gh token'
+    <#
+    .SYNOPSIS
+        Restores the gh token and active account recorded by Use-ScaffoldGhAccount.
+    .DESCRIPTION
+        Puts back a GH_TOKEN that was already set rather than just clearing ours, and switches the
+        active account back if `gh auth login` changed it. Safe to call more than once, and a no-op
+        if nothing was ever pushed - so it can run on both the success and failure paths.
+    #>
+    if (-not $script:GhStatePushed) { return }
+
+    if ($script:PriorGhToken) { $env:GH_TOKEN = $script:PriorGhToken }
+    elseif ($env:GH_TOKEN) { Remove-Item Env:GH_TOKEN -ErrorAction SilentlyContinue }
+
+    # `gh auth login` makes the account it signed in as active; put the previous one back.
+    if ($script:PriorGhAccount) {
+        $active = Get-ScaffoldActiveGhAccount
+        if ($active -and $active -ne $script:PriorGhAccount) {
+            gh auth switch --user $script:PriorGhAccount 2>$null | Out-Null
+            $global:LASTEXITCODE = 0
+            Write-Info "Restored '$($script:PriorGhAccount)' as the active gh account"
+        }
     }
+
+    $script:GhStatePushed = $false
+    Write-Info 'Released the borrowed gh token'
 }
 
 #───────────────────────────────────────────────────────────────────────────────
@@ -1489,6 +1525,7 @@ Export-ModuleMember -Function @(
     'Register-ScaffoldManualSettings'
     'Show-ScaffoldManualChecklist'
     'Get-ScaffoldContext'
+    'Get-ScaffoldActiveGhAccount'
     'Use-ScaffoldGhAccount'
     'Reset-ScaffoldGhAccount'
     'New-ScaffoldRepo'
