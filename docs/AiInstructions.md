@@ -1,4 +1,4 @@
-# AI Instructions
+# AI Instructions <!-- omit from toc -->
 
 One set of rules, several tools.
 This document records which file each tool reads,
@@ -15,13 +15,13 @@ so a rule never has to be written twice.
 
 ## Layout
 
-| File                                              | Read by                                            | Contains                              |
-| :------------------------------------------------ | :------------------------------------------------- | :------------------------------------ |
-| 📄[AGENTS.md][agentsFile]                          | Copilot, Codex, Cursor, Zed, Jules, and most others | Every rule that always applies        |
-| 📄[CLAUDE.md][claudeFile]                          | Claude Code, VS Code Copilot                       | `@AGENTS.md` plus Claude-only notes   |
-| 📁[.github/instructions/][instructionsFolder]      | Copilot (all surfaces), agents that follow a link  | Rules scoped to one file type         |
-| 📄[.github/copilot-instructions.md][copilotFile]   | Copilot                                            | A pointer, for surfaces that need one |
-| 📁[docs/][docsFolder]                              | Humans; agents on demand                           | The reasoning behind the rules        |
+| File                                            | Read by                                             | Contains                              |
+| :---------------------------------------------- | :-------------------------------------------------- | :------------------------------------ |
+| 📄[AGENTS.md][agentsFile]                        | Copilot, Codex, Cursor, Zed, Jules, and most others | Every rule that always applies        |
+| 📄[CLAUDE.md][claudeFile]                        | Claude Code, VS Code Copilot                        | `@AGENTS.md` plus Claude-only notes   |
+| 📁[.github/instructions/][instructionsFolder]    | Copilot (all surfaces), agents that follow a link   | Rules scoped to one file type         |
+| 📄[.github/copilot-instructions.md][copilotFile] | Copilot                                             | A pointer, for surfaces that need one |
+| 📁[docs/][docsFolder]                            | Humans; agents on demand                            | The reasoning behind the rules        |
 
 Nothing is duplicated:
 each rule is stated in exactly one of these files,
@@ -30,16 +30,16 @@ and everything else points at it.
 ## Why AGENTS.md is the canonical file
 
 [AGENTS.md][agents] is the cross-tool convention,
-and it is the only instruction file that today's tools either read
-natively or can import:
+and it is the only instruction file
+that today's tools either read natively or can import:
 
-- **GitHub Copilot** reads `AGENTS.md`, `CLAUDE.md`, and `GEMINI.md`
-  directly, in addition to `copilot-instructions.md`.
+- **GitHub Copilot** reads `AGENTS.md`, `CLAUDE.md`, and `GEMINI.md` directly,
+  in addition to `copilot-instructions.md`.
 - **Claude Code** reads only `CLAUDE.md`,
   but `CLAUDE.md` can `@`-import another file,
   and the import is expanded into context at session start.
-  That is real transclusion, not a hint — so `CLAUDE.md` stays at
-  three lines of its own content.
+  That is real transclusion, not a hint,
+  so `CLAUDE.md` stays at three lines of its own content.
 
 Instruction files must **state** each rule, not merely link to it.
 Agentic tools will follow a Markdown link to `docs/`,
@@ -88,13 +88,13 @@ Never copy rules into it.
 
 - **Front matter globs are Copilot's mechanism.**
   Claude Code's equivalent is `.claude/rules/*.md` with a `paths:` list,
-  which VS Code Copilot also honors.
+  which VS Code Copilot also honours.
   Using it would mean a second small file per file type,
-  so instead `AGENTS.md` tells agents to read the matching file in
-  `.github/instructions/` themselves.
+  so instead `AGENTS.md` tells agents
+  to read the matching file in `.github/instructions/` themselves.
   Claude is good at this, but it is discretionary rather than automatic.
-- **`applyTo` on github.com** applies to Copilot code review and the
-  cloud agent. In the IDE it applies everywhere.
+- **`applyTo` on github.com** applies to Copilot code review
+  and the cloud agent. In the IDE it applies everywhere.
 - **Instructions are context, not enforcement.**
   Anything that must happen every time
   belongs in a ruleset, a workflow, or a hook — not in a Markdown file.

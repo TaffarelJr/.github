@@ -27,6 +27,9 @@ Direct pushes to `main` are rejected by the repo rulesets anyway.
 - Break at commas, periods, semicolons, or the end of a complete phrase —
   never mid-thought.
   In code, stack arguments and chained calls vertically.
+- **Don't orphan a single word.**
+  If wrapping would leave one word alone on the next line,
+  run a few characters over the limit instead.
 - Relax this only where wrapping is impossible, such as a long URL.
 
 See [docs/VerticalRulers.md][rulersFile] for details.
@@ -36,8 +39,9 @@ See [docs/VerticalRulers.md][rulersFile] for details.
 - UTF-8 without a BOM, a final newline, and no trailing whitespace.
 - Indent with 4 spaces; 2 for Markdown, YAML, JSON, HTML, and CSS.
 - CRLF, except where the format requires LF (`*.sh`, `*.vim`).
-- [.editorconfig][editorConfigFile] and [.gitattributes][gitAttributesFile]
-  are the source of truth. Don't restate their rules anywhere else.
+- The source of truth is [.editorconfig][editorConfigFile]
+  and [.gitattributes][gitAttributesFile].
+  Don't restate their rules anywhere else.
 
 ## Comments
 

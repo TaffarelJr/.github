@@ -5,8 +5,8 @@ description: Markdown conventions for docs and community health files
 
 # Markdown
 
-- Wrap prose at natural phrase breaks, one clause per line where that
-  makes a diff easier to read.
+- Wrap prose at natural phrase breaks,
+  one clause per line where that makes a diff easier to read.
 - **Never reflow a paragraph you didn't otherwise change.**
   It turns a one-word edit into an unreviewable diff.
 - Use reference-style links, defined at the bottom of the file,
@@ -14,13 +14,13 @@ description: Markdown conventions for docs and community health files
   Group the definitions under two comments, each list alphabetical:
   - `<!-- Source Code URIs (alphabetical by file hierarchy) -->`
   - `<!-- Public URIs (alphabetical by name) -->`
-- Mark a heading that should stay out of a generated table of contents
-  with `<!-- omit from toc -->`.
+- Mark a heading with `<!-- omit from toc -->`
+  to keep it out of a generated table of contents.
 - Align table pipes, and declare column alignment with `:---` or `:---:`.
 - Diagrams: [Mermaid][mermaid] inline,
   [PlantUML][plantUml] for standalone documents.
-- Trailing whitespace is significant in Markdown, so it isn't trimmed
-  here. Don't add it on purpose.
+- Trailing whitespace is significant in Markdown, so it isn't trimmed here.
+  Don't add it on purpose.
 
 <!-- Public URIs (alphabetical by name) -->
 
