@@ -109,6 +109,7 @@ because most files need repo-specific customization.
 | :--------------------------------------------------------------- | :-----------------------------: | :-----------------------------: | :---------------------------------------------- |
 | 📁[.github/][githubFolder]                                        |                                 |                                 |                                                 |
 | &nbsp;├─📁DISCUSSION_TEMPLATE/                                    |                —                |                —                | Not implemented                                 |
+| &nbsp;├─📁[instructions/][instructionsFolder]                     |               N/A               |                ➕                | [Path-scoped AI instructions][aiFile]           |
 | &nbsp;├─📁[ISSUE_TEMPLATE/][issueFormsFolder]                     |                                 |                ✅                | Contains [GitHub Issue forms][ghIssueForms]     |
 | &nbsp;│&nbsp;&nbsp;&nbsp;&nbsp;└─📄[config.yml][issueChooserFile] |                ✅                |                                 | [GitHub Issue template chooser][ghIssueChooser] |
 | &nbsp;├─📄[copilot-instructions.md][copilotFile]                  |               N/A               |                ✅                | [Copilot configuration][ghCopilot]              |
@@ -126,19 +127,23 @@ because most files need repo-specific customization.
 
 ### Other Files
 
-| File                                 | Description                                      |
-| :----------------------------------- | :----------------------------------------------- |
-| 📁[.vscode/][vsCodeFolder]            | Contains VSCode settings                         |
-| 📁[docs/][docsFolder]                 | Contains documentation                           |
-| 📄[\_checklist.md][checklistFile]     | New template repo checklist                      |
-| 📄[.editorconfig][editorConfigFile]   | [Styleguide rule definitions][styleguideFile]    |
-| 📄[.gitattributes][gitAttributesFile] | Built using [scaffolding][ghGitAttributes]       |
-| 📄[.gitignore][gitIgnoreFile]         | Built using [scaffolding][ghGitIgnore]           |
-| 📄[.gitmessage][gitMessageFile]       | [Commit message template][styleguideFile-commit] |
+| File                                  | Description                                      |
+| :------------------------------------ | :----------------------------------------------- |
+| 📁[.vscode/][vsCodeFolder]             | Contains VSCode settings                         |
+| 📁[docs/][docsFolder]                  | Contains documentation                           |
+| 📁[scripts/][scriptsFolder]            | [Repo scaffolding scripts][scriptsFile]          |
+| 📄[\_checklist.md][checklistFile]      | New template repo checklist                      |
+| 📄[.editorconfig][editorConfigFile]    | [Styleguide rule definitions][styleguideFile]    |
+| 📄[.gitattributes][gitAttributesFile]  | Built using [scaffolding][ghGitAttributes]       |
+| 📄[.gitignore][gitIgnoreFile]          | Built using [scaffolding][ghGitIgnore]           |
+| 📄[.gitmessage][gitMessageFile]        | [Commit message template][styleguideFile-commit] |
+| 📄[AGENTS.md][agentsFile]              | [AI agent instructions][aiFile]                  |
+| 📄[CLAUDE.md][claudeFile]              | Imports [AGENTS.md][agentsFile] for Claude Code  |
 
 <!-- Source Code URIs (alphabetical by file hierarchy) -->
 
 [githubFolder]: ./.github/
+[instructionsFolder]: ./.github/instructions/
 [issueFormsFolder]: ./.github/ISSUE_TEMPLATE/
 [issueChooserFile]: ./.github/ISSUE_TEMPLATE/config.yml
 [workflowFolder]: ./.github/workflows/
@@ -151,13 +156,18 @@ because most files need repo-specific customization.
 [settingsFile]: ./.github/settings.yml
 [vsCodeFolder]: ./.vscode/
 [docsFolder]: ./docs/
+[aiFile]: ./docs/AiInstructions.md
 [styleguideFile]: ./docs/Styleguide.md
 [styleguideFile-commit]: ./docs/Styleguide.md#commit-messages
+[scriptsFolder]: ./scripts/
+[scriptsFile]: ./scripts/README.md
 [checklistFile]: ./_checklist.md
 [editorConfigFile]: ./.editorconfig
 [gitAttributesFile]: ./.gitattributes
 [gitIgnoreFile]: ./.gitignore
 [gitMessageFile]: ./.gitmessage
+[agentsFile]: ./AGENTS.md
+[claudeFile]: ./CLAUDE.md
 [cocFile]: ./CODE_OF_CONDUCT.md
 [contribFile]: ./CONTRIBUTING.md
 [licenseFile]: ./LICENSE
