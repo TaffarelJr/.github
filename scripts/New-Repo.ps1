@@ -89,24 +89,27 @@ param(
 
 $ErrorActionPreference = 'Stop'
 Import-Module (Join-Path $PSScriptRoot 'Helpers.psm1') -Force
-Set-ScaffoldSkipPrompts $SkipManualPrompts.IsPresent
+Set-SkipPrompts $SkipManualPrompts.IsPresent
 $bound = $PSBoundParameters
 
 # Show terminating errors as a readable banner, not a raw PowerShell dump,
 # and release the borrowed gh token on the way out.
 trap {
-    Remove-ScaffoldLayerModule
-    Reset-ScaffoldGhAccount
-    Show-ScaffoldFailure -ErrorRecord $_
+    Remove-LayerModule
+    Reset-GhAccount
+    Show-Failure -ErrorRecord $_
     exit 1
 }
 
-# ── Step 0: context + inputs ──────────────────────────────────────────────────
-Write-ScaffoldStep '0' 'Prerequisites & inputs'
-$ctx = Get-ScaffoldContext -ScriptRoot $PSScriptRoot
+#───────────────────────────────────────────────────────────────────────────────
+# Step 0: context + inputs
+#───────────────────────────────────────────────────────────────────────────────
+
+Write-Step '0' 'Prerequisites & inputs'
+$ctx = Get-TemplateContext -ScriptRoot $PSScriptRoot
 $owner = Get-RepoOwner
 
-$Kind = Resolve-ScaffoldInput -Name Kind -Bound $bound -Value $Kind `
+$Kind = Resolve-Input -Name Kind -Bound $bound -Value $Kind `
     -Prompt 'Kind - Template (a new layer) or Code (a leaf repo)' `
     -Default 'Code'
 if ($Kind -notin 'Template', 'Code') {
@@ -119,7 +122,7 @@ $namePrompt = if ($Kind -eq 'Template') {
 else {
     "New repo name (kebab-case, e.g. 'my-service')"
 }
-$Name = Resolve-ScaffoldInput -Name Name -Bound $bound `
+$Name = Resolve-Input -Name Name -Bound $bound `
     -Value $Name -Prompt $namePrompt
 
 # Accept either 'dotnet' or '.template-dotnet' for a template layer.
@@ -127,69 +130,84 @@ $slug = if ($Kind -eq 'Template') {
     $Name -replace '^\.template-', ''
 }
 else { $Name }
-$slug = Format-ScaffoldSlug -Value $slug -Label 'Name'
+$slug = Format-Slug -Value $slug -Label 'Name'
 $repo = if ($Kind -eq 'Template') { ".template-$slug" } else { $slug }
 
 $ownerRepo = "$owner/$repo"
 $targetPath = Join-Path $ctx.ParentDir $repo
 
-Write-ScaffoldField 'Source template' $ctx.SourceOwnerRepo
-Write-ScaffoldField ''                $ctx.SourceRoot
-Write-ScaffoldField "New $($Kind.ToLowerInvariant()) repo" $ownerRepo
-Write-ScaffoldField 'Clone to'        $targetPath
+Write-Field 'Source template' $ctx.SourceOwnerRepo
+Write-Field ''                $ctx.SourceRoot
+Write-Field "New $($Kind.ToLowerInvariant()) repo" $ownerRepo
+Write-Field 'Clone to'        $targetPath
 
-Use-ScaffoldGhAccount -ProbeOwnerRepo $ctx.SourceOwnerRepo
+Use-GhAccount -ProbeOwnerRepo $ctx.SourceOwnerRepo
 
-$Description = Resolve-ScaffoldInput -Name Description -Bound $bound `
+$Description = Resolve-Input -Name Description -Bound $bound `
     -Value $Description -Prompt 'Repo description (single line)'
-$Homepage = Resolve-ScaffoldInput -Name Homepage -Bound $bound `
+$Homepage = Resolve-Input -Name Homepage -Bound $bound `
     -Value $Homepage -Prompt 'Homepage URL (optional - blank to omit)'
-$Topics = Resolve-ScaffoldInput -Name Topics -Bound $bound `
+$Topics = Resolve-Input -Name Topics -Bound $bound `
     -Value $Topics -Prompt 'Topics (comma-separated)'
 
 if (-not $bound.ContainsKey('CodecovToken')) {
-    Write-ScaffoldField 'Codecov token at' `
+    Write-Field 'Codecov token at' `
         "https://app.codecov.io/account/gh/$owner/org-upload-token"
 }
-$CodecovToken = Resolve-ScaffoldInput -Name CodecovToken -Bound $bound `
+$CodecovToken = Resolve-Input -Name CodecovToken -Bound $bound `
     -Value $CodecovToken -Prompt 'CODECOV_TOKEN value (blank to skip)' -Secret
 
-if (-not (Confirm-ScaffoldProceed -OwnerRepo $ownerRepo)) { return }
+if (-not (Confirm-Proceed -OwnerRepo $ownerRepo)) { return }
 
-# ── Step 1: create ────────────────────────────────────────────────────────────
-Write-ScaffoldStep '1' 'Create the new repo'
-New-ScaffoldRepo -OwnerRepo $ownerRepo
+#───────────────────────────────────────────────────────────────────────────────
+# Step 1: create
+#───────────────────────────────────────────────────────────────────────────────
 
-# ── Step 2: settings (API) ────────────────────────────────────────────────────
-Write-ScaffoldStep '2' 'Configure repo settings (API)'
-Set-ScaffoldActionsPermissions      -OwnerRepo $ownerRepo
-Enable-ScaffoldPrivateVulnReporting -OwnerRepo $ownerRepo
-Enable-ScaffoldImmutableReleases    -OwnerRepo $ownerRepo
-Initialize-ScaffoldTopics           -OwnerRepo $ownerRepo
-Set-ScaffoldCodecovSecret           -OwnerRepo $ownerRepo -Token $CodecovToken
+Write-Step '1' 'Create the new repo'
+New-GitHubRepo -OwnerRepo $ownerRepo
 
-# ── Step 3: clone + remotes ───────────────────────────────────────────────────
-Write-ScaffoldStep '3' 'Clone the new repo'
+#───────────────────────────────────────────────────────────────────────────────
+# Step 2: settings (API)
+#───────────────────────────────────────────────────────────────────────────────
+
+Write-Step '2' 'Configure repo settings (API)'
+Set-ActionsPermissions      -OwnerRepo $ownerRepo
+Enable-PrivateVulnReporting -OwnerRepo $ownerRepo
+Enable-ImmutableReleases    -OwnerRepo $ownerRepo
+Initialize-Topics           -OwnerRepo $ownerRepo
+Set-CodecovSecret           -OwnerRepo $ownerRepo -Token $CodecovToken
+
+#───────────────────────────────────────────────────────────────────────────────
+# Step 3: clone + remotes
+#───────────────────────────────────────────────────────────────────────────────
+
+Write-Step '3' 'Clone the new repo'
 # Preserves the origin URL style, including any custom SSH host alias.
-$originUrl = Get-ScaffoldNewRepoUrl -Context $ctx -RepoName $repo
-Initialize-ScaffoldClone -OriginUrl $originUrl -TargetPath $targetPath `
+$originUrl = Get-NewRepoUrl -Context $ctx -RepoName $repo
+Initialize-Clone -OriginUrl $originUrl -TargetPath $targetPath `
     -TemplateUrl $ctx.SourceUrl
 
-# ── Step 4: drop what belongs only to the parent ──────────────────────────────
+#───────────────────────────────────────────────────────────────────────────────
+# Step 4: drop what belongs only to the parent
+#───────────────────────────────────────────────────────────────────────────────
+
 # Deletions run BEFORE the README pass, so the README stops documenting
 # files that have already gone, rather than the other way round.
-Write-ScaffoldStep '4' 'Remove template-only files'
-Invoke-ScaffoldGatedCommit -RepoPath $targetPath `
+Write-Step '4' 'Remove template-only files'
+Invoke-GatedCommit -RepoPath $targetPath `
     -Message 'chore: remove template-only files' `
     -Paths @('.github', 'README.md', 'scripts') -Body {
-    Remove-ScaffoldTemplateOnlyFiles -RepoPath $targetPath
-    if ($Kind -eq 'Code') { Remove-ScaffoldScripts -RepoPath $targetPath }
-    Update-ScaffoldReadme            -RepoPath $targetPath
+    Remove-TemplateOnlyFiles -RepoPath $targetPath
+    if ($Kind -eq 'Code') { Remove-ScriptsFolder -RepoPath $targetPath }
+    Update-Readme            -RepoPath $targetPath
 }
 
-# ── Step 5: point this repo's docs at itself ──────────────────────────────────
-Write-ScaffoldStep '5' 'Retarget template references'
-Invoke-ScaffoldGatedCommit -RepoPath $targetPath `
+#───────────────────────────────────────────────────────────────────────────────
+# Step 5: point this repo's docs at itself
+#───────────────────────────────────────────────────────────────────────────────
+
+Write-Step '5' 'Retarget template references'
+Invoke-GatedCommit -RepoPath $targetPath `
     -Message 'chore: retarget template references' `
     -Paths @(
         '.github/ISSUE_TEMPLATE'
@@ -198,22 +216,28 @@ Invoke-ScaffoldGatedCommit -RepoPath $targetPath `
         'SUPPORT.md'
     ) `
     -Body {
-    Update-ScaffoldReferences -RepoPath $targetPath `
+    Update-RepoReferences -RepoPath $targetPath `
         -OldOwnerRepo $ctx.SourceOwnerRepo -NewOwnerRepo $ownerRepo
 }
 
-# ── Step 6: start syncing from the immediate parent ───────────────────────────
-Write-ScaffoldStep '6' 'Enable Template Sync'
-Invoke-ScaffoldGatedCommit -RepoPath $targetPath `
+#───────────────────────────────────────────────────────────────────────────────
+# Step 6: start syncing from the immediate parent
+#───────────────────────────────────────────────────────────────────────────────
+
+Write-Step '6' 'Enable Template Sync'
+Invoke-GatedCommit -RepoPath $targetPath `
     -Message 'ci: enable the template sync schedule' `
     -Paths @('.github/workflows/template-sync.yml') -Body {
-    Set-ScaffoldTemplateSyncConfig -RepoPath $targetPath `
+    Set-TemplateSyncConfig -RepoPath $targetPath `
         -TemplateOwnerRepo $ctx.SourceOwnerRepo
 }
 
-# ── Step 7: whatever THIS template layer needs (optional Template.psm1) ───────
-Write-ScaffoldStep '7' 'Apply template-specific customizations'
-Invoke-ScaffoldLayer -RepoPath $targetPath -Context @{
+#───────────────────────────────────────────────────────────────────────────────
+# Step 7: whatever THIS template layer needs (optional Helpers-*.psm1)
+#───────────────────────────────────────────────────────────────────────────────
+
+Write-Step '7' 'Apply template-specific customizations'
+Invoke-LayerModule -RepoPath $targetPath -Context @{
     RepoPath        = $targetPath
     RepoName        = $repo
     Kind            = $Kind
@@ -221,51 +245,66 @@ Invoke-ScaffoldLayer -RepoPath $targetPath -Context @{
     SourceOwnerRepo = $ctx.SourceOwnerRepo
 }
 
-# ── Step 8: this repo's own settings ──────────────────────────────────────────
-Write-ScaffoldStep '8' 'Customize repo settings'
-Invoke-ScaffoldGatedCommit -RepoPath $targetPath `
+#───────────────────────────────────────────────────────────────────────────────
+# Step 8: this repo's own settings
+#───────────────────────────────────────────────────────────────────────────────
+
+Write-Step '8' 'Customize repo settings'
+Invoke-GatedCommit -RepoPath $targetPath `
     -Message 'chore: customize repo settings' `
     -Paths @('.github/settings.yml') -Body {
     # _extends resolves recursively, so this inherits the whole chain.
-    Write-ScaffoldSettings -RepoPath $targetPath -Kind $Kind -Name $repo `
+    Write-SettingsFile -RepoPath $targetPath -Kind $Kind -Name $repo `
         -ExtendsRepo $ctx.SourceRepo `
         -Description $Description -Homepage $Homepage -Topics $Topics
 }
 
-# ── Step 9: push (triggers Settings app) + CodeQL ─────────────────────────────
-Write-ScaffoldStep '9' 'Push & enable CodeQL'
-Push-ScaffoldRepo     -RepoPath $targetPath
-Enable-ScaffoldCodeql -OwnerRepo $ownerRepo   # now that code/workflows exist
+#───────────────────────────────────────────────────────────────────────────────
+# Step 9: push (triggers Settings app) + CodeQL
+#───────────────────────────────────────────────────────────────────────────────
 
-# ── Step 10: initialize workflows, if anything changed ────────────────────────
-Write-ScaffoldStep '10' 'Initialize Template Sync'
-if ((Get-ScaffoldChangeCount) -gt 0) {
-    Start-ScaffoldTemplateSync -OwnerRepo $ownerRepo
+Write-Step '9' 'Push & enable CodeQL'
+Push-Repo     -RepoPath $targetPath
+Enable-Codeql -OwnerRepo $ownerRepo   # now that code/workflows exist
+
+#───────────────────────────────────────────────────────────────────────────────
+# Step 10: initialize workflows, if anything changed
+#───────────────────────────────────────────────────────────────────────────────
+
+Write-Step '10' 'Initialize Template Sync'
+if ((Get-ChangeCount) -gt 0) {
+    Start-TemplateSync -OwnerRepo $ownerRepo
 }
 else {
     Write-Skip 'Nothing changed this run - Template Sync is already initialized'
 }
 
-# ── Step 11: VS Code multi-root workspace, then open it ───────────────────────
-Write-ScaffoldStep '11' 'Set up the VS Code workspace'
+#───────────────────────────────────────────────────────────────────────────────
+# Step 11: VS Code multi-root workspace, then open it
+#───────────────────────────────────────────────────────────────────────────────
+
+Write-Step '11' 'Set up the VS Code workspace'
 # Exclude BEFORE creating: if the run dies between the two, an unexcluded
 # workspace file would be committed and then synced to every descendant.
-Add-ScaffoldGitExclude -RepoPath $targetPath -Pattern "$repo.code-workspace"
+Add-GitExclude -RepoPath $targetPath -Pattern "$repo.code-workspace"
 # Chain = the source template plus every ancestor cloned locally, nearest first.
-$chain = Get-ScaffoldTemplateChain -StartRepoPath $ctx.SourceRoot `
+$chain = Get-TemplateChain -StartRepoPath $ctx.SourceRoot `
     -ParentDir $ctx.ParentDir
-$wsFile = Write-ScaffoldWorkspaceFile -RepoPath $targetPath -RepoName $repo `
+$wsFile = Write-WorkspaceFile -RepoPath $targetPath -RepoName $repo `
     -ChainPaths $chain
-Start-ScaffoldVSCode   -Target $wsFile
+Start-VSCode -Target $wsFile
 
-# ── Manual follow-up checklist ────────────────────────────────────────────────
-Remove-ScaffoldLayerModule
-Reset-ScaffoldGhAccount
-Register-ScaffoldManualSettings -OwnerRepo $ownerRepo
-Show-ScaffoldManualChecklist    -OwnerRepo $ownerRepo
-Show-ScaffoldSummary
+#───────────────────────────────────────────────────────────────────────────────
+# Manual follow-up checklist
+#───────────────────────────────────────────────────────────────────────────────
 
-if ((Get-ScaffoldChangeCount) -eq 0) {
+Remove-LayerModule
+Reset-GhAccount
+Register-ManualSettings -OwnerRepo $ownerRepo
+Show-ManualChecklist    -OwnerRepo $ownerRepo
+Show-Summary
+
+if ((Get-ChangeCount) -eq 0) {
     Write-Host "  ✅ $ownerRepo was already fully scaffolded." `
         -ForegroundColor Green
 }

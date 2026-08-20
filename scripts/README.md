@@ -97,8 +97,8 @@ it verifies what's done and picks up where it left off.
   (a code repo isn't derived from, and outside contributors have no use for the
   personal templating infrastructure).
 - Keep `Helpers.psm1` **and** `New-Repo.ps1` **identical at every layer** so merges stay
-  clean. Everything layer-specific goes in `Template.psm1` instead — the same idea as
-  `_extends` for settings: shared logic inherited, deltas declared locally.
+  clean. Everything layer-specific goes in a `Helpers-<NN>-<slug>.psm1` instead — the same
+  idea as `_extends` for settings: shared logic inherited, deltas declared locally.
 
 ### Per-layer customization: `Helpers-<NN>-<slug>.psm1`
 
@@ -115,16 +115,16 @@ descendants to reuse**, plus exactly one entry point matching `Invoke-*Scaffold`
 
 ```powershell
 # .template-dotnet/scripts/Helpers-10-dotnet.psm1
-function Rename-DotnetPlaceholder { param($RepoPath, $To) ... }   # reusable by lower layers
+function Rename-DotnetProject { param($RepoPath, $To) ... }   # reusable by lower layers
 
 function Invoke-DotnetScaffold {
     param([hashtable]$Context)   # RepoPath, RepoName, Kind, OwnerRepo, SourceOwnerRepo
-    Rename-DotnetPlaceholder -RepoPath $Context.RepoPath -To $Context.RepoName
+    Rename-DotnetProject -RepoPath $Context.RepoPath -To $Context.RepoName
 }
-Export-ModuleMember -Function Rename-DotnetPlaceholder, Invoke-DotnetScaffold
+Export-ModuleMember -Function Rename-DotnetProject, Invoke-DotnetScaffold
 ```
 
-A lower layer can then call `Rename-DotnetPlaceholder` directly — the modules are imported
+A lower layer can then call `Rename-DotnetProject` directly — the modules are imported
 `-Global`, so every layer's helpers are visible to the layers below it. That's the point of
 using modules rather than plain scripts.
 
@@ -142,10 +142,10 @@ leaf still gets its ancestors' renames even though scaffolding deletes the leaf'
 `scripts/` folder. Base layers with nothing to customize contribute no file.
 
 **Each layer owns its own commits.** A layer that does several unrelated things should make
-several commits, by calling the exported `Invoke-ScaffoldGatedCommit` itself:
+several commits, by calling the exported `Invoke-GatedCommit` itself:
 
 ```powershell
-Invoke-ScaffoldGatedCommit -RepoPath $Context.RepoPath `
+Invoke-GatedCommit -RepoPath $Context.RepoPath `
     -Message 'chore: rename the placeholder project' -Body { ... }
 ```
 
