@@ -1,11 +1,11 @@
 #Requires -Version 7.0
 <#
-    Shared helpers for New-Repo.ps1, which creates a new repo derived from the template repo it
-    is run from. See scripts/README.md for the design.
+    Shared helpers for New-Repo.ps1, which creates a new repo derived from the
+    template repo it is run from. See scripts/README.md for the design.
 
-    Keep this file identical at every layer: it is inherited by merge, so a per-layer edit
-    conflicts on every future template change. Layer-specific behaviour goes in an additive
-    Helpers-<NN>-<slug>.psm1 alongside it.
+    Keep this file identical at every layer: it is inherited by merge, so a
+    per-layer edit conflicts on every future template change. Layer-specific
+    behaviour goes in an additive Helpers-<NN>-<slug>.psm1 alongside it.
 #>
 
 Set-StrictMode -Version Latest
@@ -20,7 +20,8 @@ $script:TemplateBranch = 'main'
 function Get-RepoOwner {
     <#
     .SYNOPSIS
-        The GitHub account that owns every template layer and every repo derived from one.
+        The GitHub account that owns every template layer and every repo derived
+        from one.
     #>
     return $script:RepoOwner
 }
@@ -42,21 +43,25 @@ function Get-ScaffoldLayerModule {
     .SYNOPSIS
         The Helpers-<NN>-<slug>.psm1 layer modules in this chain, in load order.
     .DESCRIPTION
-        <NN> is the layer tier, since alphabetical order does not match ancestry.
-        The extension is checked explicitly because a Windows -Filter of '*.psm1' matches loosely.
+        <NN> is the layer tier, since alphabetical order does not match
+        ancestry. The extension is checked explicitly because a Windows -Filter
+        of '*.psm1' matches loosely.
     #>
-    return @(Get-ChildItem -Path $PSScriptRoot -Filter 'Helpers-*' -File -ErrorAction SilentlyContinue |
+    return @(Get-ChildItem -Path $PSScriptRoot -Filter 'Helpers-*' -File `
+        -ErrorAction SilentlyContinue |
             Where-Object { $_.Extension -eq '.psm1' } | Sort-Object Name)
 }
 
 function Import-ScaffoldLayerModule {
     <#
     .SYNOPSIS
-        Loads every layer module and returns its module/entry-point pairs in order.
+        Loads every layer module and returns its module/entry-point pairs in
+        order.
     .DESCRIPTION
-        Imported -Global so each layer's exported helpers are visible to the layers below it.
-        The entry point is found from the module's own ExportedFunctions by the Invoke-*Scaffold
-        pattern, so it is never coupled to the filename.
+        Imported -Global so each layer's exported helpers are visible to the
+        layers below it. The entry point is found from the module's own
+        ExportedFunctions by the Invoke-*Scaffold pattern, so it is never
+        coupled to the filename.
     #>
     $loaded = [System.Collections.Generic.List[object]]::new()
     foreach ($file in Get-ScaffoldLayerModule) {
@@ -72,15 +77,20 @@ function Import-ScaffoldLayerModule {
 }
 
 function Remove-ScaffoldLayerModule {
-    <# Unload the layer modules so an interactive session isn't left holding them. #>
+    <#
+    .SYNOPSIS
+        Unload the layer modules so an interactive session isn't left holding
+        them.
+    #>
     foreach ($file in Get-ScaffoldLayerModule) {
         Remove-Module ([System.IO.Path]::GetFileNameWithoutExtension($file.Name)) -Force -ErrorAction SilentlyContinue
     }
 }
 
-# Files that exist ONLY in the base .github repo. Single source of truth: the same table
-# drives both the deletion and the README de-linking, so the two can't drift apart.
-# 'Label' is the markdown link-reference label the README uses for that file.
+# Files that exist ONLY in the base .github repo. Single source of truth: the
+# same table drives both the deletion and the README de-linking, so the two
+# can't drift apart. 'Label' is the markdown link-reference label the README
+# uses for that file.
 $script:TemplateOnlyFiles = @(
     @{ Path = '.github/FUNDING.yml'; Label = 'fundingFile' }
     @{ Path = '.github/ISSUE_TEMPLATE/config.yml'; Label = 'issueChooserFile' }
@@ -94,31 +104,47 @@ $script:SkipManualPrompts = $false
 $script:CurrentStep = ''
 $script:CurrentStepTitle = ''
 
-# gh state pushed by Use-ScaffoldGhAccount and popped by Reset-ScaffoldGhAccount.
+# Pushed by Use-ScaffoldGhAccount, popped by Reset-ScaffoldGhAccount.
 $script:GhStatePushed = $false
 $script:PriorGhToken = $null
 $script:PriorGhAccount = $null
 $script:ManualItems = [System.Collections.Generic.List[object]]::new()
 
-# Two DIFFERENT axes, deliberately kept apart:
-#   $Succeeded/$Skipped/$Warnings - display tallies for the end-of-run summary.
-#   $Activity                     - did this run CHANGE anything that matters? Gates the
-#                                   Template Sync dispatch and the "already fully
-#                                   scaffolded" message, so it must NOT count mere
-#                                   successful verifications (admin check, push no-op...).
+# Display tallies for the end-of-run summary.
 $script:OkCount = 0
 $script:SkipCount = 0
 $script:WarnCount = 0
+
+# Not a tally: did this run change anything? Gates the Template Sync dispatch
+# and the "already fully scaffolded" message, so successful no-ops must not count.
 $script:ChangeCount = 0
 
 $script:Rule = '─' * 72
 
-# One marker per outcome, used by EVERY operation so the log reads consistently:
+# One marker per outcome, so the log reads consistently:
 #   ✅ succeeded   ⏭️ already done   ⚠️ warning   ❌ failed   ℹ️ neutral note
-function Write-Ok { param([string]$Msg) $script:OkCount++; Write-Host "  ✅ $Msg" -ForegroundColor Green }
-function Write-Skip { param([string]$Msg) $script:SkipCount++; Write-Host "  ⏭️  $Msg" -ForegroundColor DarkGray }
-function Write-Warn { param([string]$Msg) $script:WarnCount++; Write-Host "  ⚠️  $Msg" -ForegroundColor Yellow }
-function Write-Err { param([string]$Msg) Write-Host "  ❌ $Msg" -ForegroundColor Red }
+function Write-Ok {
+    param([string]$Msg)
+    $script:OkCount++
+    Write-Host "  ✅ $Msg" -ForegroundColor Green
+}
+
+function Write-Skip {
+    param([string]$Msg)
+    $script:SkipCount++
+    Write-Host "  ⏭️  $Msg" -ForegroundColor DarkGray
+}
+
+function Write-Warn {
+    param([string]$Msg)
+    $script:WarnCount++
+    Write-Host "  ⚠️  $Msg" -ForegroundColor Yellow
+}
+
+function Write-Err {
+    param([string]$Msg)
+    Write-Host "  ❌ $Msg" -ForegroundColor Red
+}
 function Write-Info { param([string]$Msg) Write-Host "  ℹ️  $Msg" -ForegroundColor Gray }
 
 # Flags that this run changed real state (see $Activity above).
@@ -127,11 +153,15 @@ function Add-ScaffoldChange { $script:ChangeCount++ }
 # Indented continuation line, for detail belonging to the marker above it.
 function Write-Detail { param([string]$Msg) Write-Host "       $Msg" -ForegroundColor DarkGray }
 
-# Aligned label/value pair, for the run header in step 0. Exported, so it is named
-# Write-ScaffoldField to match the module's public prefix.
+# Aligned label/value pair, for the run header in step 0. Exported, so it is
+# named Write-ScaffoldField to match the module's public prefix.
 function Write-ScaffoldField {
-    # An empty -Label is allowed: it renders a continuation line under the field above.
-    param([Parameter(Mandatory)][AllowEmptyString()][string]$Label, [string]$Value)
+    # An empty -Label is allowed: it renders a continuation line under the field
+    # above.
+    param(
+        [Parameter(Mandatory)][AllowEmptyString()][string]$Label,
+        [string]$Value
+    )
     Write-Host ("  ·  {0,-18}{1}" -f $Label, $Value) -ForegroundColor Gray
 }
 
@@ -141,8 +171,15 @@ function Assert-LastExit {
 }
 
 function Format-ScaffoldSlug {
-    <# Normalise and validate a repo-name slug. One regex, one error wording, both scripts. #>
-    param([Parameter(Mandatory)][string]$Value, [Parameter(Mandatory)][string]$Label)
+    <#
+    .SYNOPSIS
+        Normalise and validate a repo-name slug. One regex, one error wording,
+        both scripts.
+    #>
+    param(
+        [Parameter(Mandatory)][string]$Value,
+        [Parameter(Mandatory)][string]$Label
+    )
     $slug = $Value.Trim().ToLowerInvariant()
     if ($slug -notmatch '^[a-z0-9]+(-[a-z0-9]+)*$') {
         throw "$Label must be kebab-case (letters/digits/hyphens): '$slug'"
@@ -152,9 +189,10 @@ function Format-ScaffoldSlug {
 
 function Confirm-ScaffoldProceed {
     <#
-        Final go/no-go gate. Returns $true when the run should continue. Honours the module's
-        own skip-prompts state rather than a second copy of the switch in each script, and
-        reports an abort through Write-Warn so it looks like every other warning.
+        Final go/no-go gate. Returns $true when the run should continue. Honours
+        the module's own skip-prompts state rather than a second copy of the
+        switch in each script, and reports an abort through Write-Warn so it
+        looks like every other warning.
     #>
     param([Parameter(Mandatory)][string]$OwnerRepo)
     if ($script:SkipManualPrompts) { return $true }
@@ -164,13 +202,21 @@ function Confirm-ScaffoldProceed {
 }
 
 function Write-ScaffoldStep {
-    <# Start a step. Records it so a failure banner can name where things went wrong. #>
-    param([Parameter(Mandatory)][string]$Number, [Parameter(Mandatory)][string]$Title)
+    <#
+    .SYNOPSIS
+        Start a step. Records it so a failure banner can name where things went
+        wrong.
+    #>
+    param(
+        [Parameter(Mandatory)][string]$Number,
+        [Parameter(Mandatory)][string]$Title
+    )
     $script:CurrentStep = $Number
     $script:CurrentStepTitle = $Title
     $head = "═══ STEP $Number · $Title "
     Write-Host ""
-    Write-Host ($head + ('═' * [Math]::Max(0, 72 - $head.Length))) -ForegroundColor Cyan
+    Write-Host ($head + ('═' * [Math]::Max(0, 72 - $head.Length))) `
+        -ForegroundColor Cyan
 }
 
 function Get-ScaffoldChangeCount { return $script:ChangeCount }
@@ -179,14 +225,16 @@ function Show-ScaffoldSummary {
     <# One-line tally so the end of a run is readable at a glance. #>
     Write-Host ""
     Write-Host ("  {0} ok · {1} already done · {2} warning(s)" -f `
-            $script:OkCount, $script:SkipCount, $script:WarnCount) -ForegroundColor Gray
+            $script:OkCount, $script:SkipCount, $script:WarnCount) `
+                -ForegroundColor Gray
 }
 
 function Show-ScaffoldFailure {
     <#
-        Render a terminating error as a readable banner instead of a raw PowerShell dump:
-        which step failed, the message, the offending line, and the script stack trace.
-        Scaffolding is resumable, so it also says what to do next.
+        Render a terminating error as a readable banner instead of a raw
+        PowerShell dump: which step failed, the message, the offending line, and
+        the script stack trace. Scaffolding is resumable, so it also says what
+        to do next.
     #>
     param([Parameter(Mandatory)]$ErrorRecord)
     Write-Host ""
@@ -218,11 +266,13 @@ function Show-ScaffoldFailure {
 
 function Invoke-ScaffoldGit {
     <#
-        Run git with its chatter CAPTURED rather than dumped to the console, and turn a
-        non-zero exit into a clean error that includes git's own output as detail.
+        Run git with its chatter CAPTURED rather than dumped to the console, and
+        turn a non-zero exit into a clean error that includes git's own output
+        as detail.
 
-        Only for calls where failure is genuinely an error. Calls that USE the exit code as
-        a boolean (show-ref --quiet, diff --cached --quiet, rev-parse --verify) stay raw.
+        Only for calls where failure is genuinely an error. Calls that USE the
+        exit code as a boolean (show-ref --quiet, diff --cached --quiet,
+        rev-parse --verify) stay raw.
     #>
     param(
         [Parameter(Mandatory)][string]$What,
@@ -242,7 +292,11 @@ function Invoke-ScaffoldGit {
 }
 
 function Invoke-ScaffoldGh {
-    <# Same as Invoke-ScaffoldGit, for the gh CLI. -Arguments must be an explicit array. #>
+    <#
+    .SYNOPSIS
+        Same as Invoke-ScaffoldGit, for the gh CLI. -Arguments must be an
+        explicit array.
+    #>
     param(
         [Parameter(Mandatory)][string]$What,
         [Parameter(Mandatory)][string[]]$Arguments
@@ -267,12 +321,15 @@ function Set-ScaffoldSkipPrompts {
 
 function Resolve-ScaffoldInput {
     <#
-        Return a value that may come from the command line or an interactive prompt.
-        - If the caller passed the parameter (tracked in $Bound = $PSBoundParameters),
+        Return a value that may come from the command line or an interactive
+        prompt. - If the caller passed the parameter (tracked in $Bound =
+        $PSBoundParameters),
           use $Value as-is and DO NOT prompt - even if it's an empty string.
-        - Otherwise, if prompts are suppressed (Set-ScaffoldSkipPrompts $true), return
+        - Otherwise, if prompts are suppressed (Set-ScaffoldSkipPrompts $true),
+        return
           $Default without prompting (so unattended runs never block).
-        - Otherwise prompt. A non-empty -Default is shown as [default]; ENTER accepts it.
+        - Otherwise prompt. A non-empty -Default is shown as [default]; ENTER
+        accepts it.
           -Secret prompts without echo (for tokens).
     #>
     param(
@@ -310,24 +367,33 @@ function Add-ScaffoldManualItem {
 }
 
 function Register-ScaffoldManualSettings {
-    <# The four repo settings GitHub only exposes in the web UI (no REST API). #>
+    <#
+    .SYNOPSIS
+        The four repo settings GitHub only exposes in the web UI (no REST API).
+    #>
     param([Parameter(Mandatory)][string]$OwnerRepo)
     # NB: release immutability is NOT listed here - it has a real API now and is handled by
-    # Enable-ScaffoldImmutableReleases, which re-adds it to this list only if the call fails.
+    # Enable-ScaffoldImmutableReleases, which re-adds it to this list only if
+    # the call fails.
     $cat = 'GitHub settings — web UI only (no API)'
     $url = "https://github.com/$OwnerRepo/settings"
-    Add-ScaffoldManualItem -Category $cat -Title 'Limit branches/tags updated per push to 2' `
+    Add-ScaffoldManualItem -Category $cat `
+        -Title 'Limit branches/tags updated per push to 2' `
         -Steps @("$url  →  General  →  check 'Limit how many branches and tags can be updated in a single push'  →  set 2")
-    Add-ScaffoldManualItem -Category $cat -Title 'Restrict code review to users with read+ access' `
+    Add-ScaffoldManualItem -Category $cat `
+        -Title 'Restrict code review to users with read+ access' `
         -Steps @("$url  →  Moderation options  →  Code review limits  →  check 'Limit to users explicitly granted read or higher access'")
-    Add-ScaffoldManualItem -Category $cat -Title 'Enable grouped security updates' `
+    Add-ScaffoldManualItem -Category $cat `
+        -Title 'Enable grouped security updates' `
         -Steps @("$url/security_analysis  →  enable 'Grouped security updates'")
-    Add-ScaffoldManualItem -Category $cat -Title 'Enable the Dependency graph — only if this repo is PRIVATE' `
+    Add-ScaffoldManualItem -Category $cat `
+        -Title 'Enable the Dependency graph — only if this repo is PRIVATE' `
         -Steps @(
             "$url/security_analysis  →  enable 'Dependency graph'",
             "Not needed for public repos: it is always on and the toggle isn't offered."
         )
-    Add-ScaffoldManualItem -Category $cat -Title 'Verify the description and topics appear on the home page' `
+    Add-ScaffoldManualItem -Category $cat `
+        -Title 'Verify the description and topics appear on the home page' `
         -Steps @("https://github.com/$OwnerRepo  (the Settings app applies settings.yml within a few minutes)")
 }
 
@@ -359,9 +425,9 @@ function Show-ScaffoldManualChecklist {
 
 function Get-ScaffoldContext {
     <#
-        Discover the SOURCE template repo from the calling script's location. The
-        scripts live in <templateRepo>/scripts, so the repo root is the parent of
-        $ScriptRoot and new repos are cloned next to it (ParentDir).
+        Discover the SOURCE template repo from the calling script's location.
+        The scripts live in <templateRepo>/scripts, so the repo root is the
+        parent of $ScriptRoot and new repos are cloned next to it (ParentDir).
     #>
     [CmdletBinding()]
     param([Parameter(Mandatory)][string]$ScriptRoot)
@@ -397,13 +463,15 @@ function Get-ScaffoldContext {
 function Get-ScaffoldActiveGhAccount {
     <#
     .SYNOPSIS
-        The login gh is currently authenticating as, or $null if the call failed.
+        The login gh is currently authenticating as, or $null if the call
+        failed.
     .DESCRIPTION
-        gh writes error bodies to STDOUT, so a failed call returns JSON rather than nothing -
+        gh writes error bodies to STDOUT, so a failed call returns JSON rather
+        than nothing -
         which would otherwise be captured and later fed to `gh auth switch --user`. Guard on the
-        exit code, then reject anything with JSON punctuation in it. Deny-listing rather than
-        allow-listing, because logins legitimately contain characters like the underscore in
-        enterprise-managed accounts.
+        exit code, then reject anything with JSON punctuation in it.
+        Deny-listing rather than allow-listing, because logins legitimately
+        contain characters like the underscore in enterprise-managed accounts.
     #>
     $login = gh api user --jq .login 2>$null
     $ok = ($LASTEXITCODE -eq 0)
@@ -417,17 +485,20 @@ function Get-ScaffoldActiveGhAccount {
 function Use-ScaffoldGhAccount {
     <#
     .SYNOPSIS
-        Points this process's gh calls at the repo owner and verifies it has admin access.
+        Points this process's gh calls at the repo owner and verifies it has
+        admin access.
     .DESCRIPTION
         Borrows the owner's token into $env:GH_TOKEN rather than running `gh auth switch`, which
-        would repoint every other shell on the machine. Records any prior GH_TOKEN and active
-        account first, so Reset-ScaffoldGhAccount can put both back exactly as they were.
+        would repoint every other shell on the machine. Records any prior
+        GH_TOKEN and active account first, so Reset-ScaffoldGhAccount can put
+        both back exactly as they were.
     #>
     param([Parameter(Mandatory)][string]$ProbeOwnerRepo)
 
     $account = $script:RepoOwner
 
-    # Push the state we are about to change, so the pop can be exact rather than approximate.
+    # Push the state we are about to change, so the pop can be exact rather than
+    # approximate.
     $script:PriorGhToken = $env:GH_TOKEN
     $script:PriorGhAccount = Get-ScaffoldActiveGhAccount
     $script:GhStatePushed = $true
@@ -458,7 +529,8 @@ function Use-ScaffoldGhAccount {
     $active = Get-ScaffoldActiveGhAccount
     if (-not $active) { throw "Not authenticated with gh. Run 'gh auth login' first." }
 
-    # Admin probe: being logged in is not the same as having the scopes/permissions we need.
+    # Admin probe: being logged in is not the same as having the
+    # scopes/permissions we need.
     gh api "repos/$ProbeOwnerRepo/actions/permissions/workflow" --silent 2>$null | Out-Null
     $ok = ($LASTEXITCODE -eq 0)
     $global:LASTEXITCODE = 0
@@ -472,11 +544,14 @@ function Use-ScaffoldGhAccount {
 function Reset-ScaffoldGhAccount {
     <#
     .SYNOPSIS
-        Restores the gh token and active account recorded by Use-ScaffoldGhAccount.
+        Restores the gh token and active account recorded by
+        Use-ScaffoldGhAccount.
     .DESCRIPTION
-        Puts back a GH_TOKEN that was already set rather than just clearing ours, and switches the
+        Puts back a GH_TOKEN that was already set rather than just clearing
+        ours, and switches the
         active account back if `gh auth login` changed it. Safe to call more than once, and a no-op
-        if nothing was ever pushed - so it can run on both the success and failure paths.
+        if nothing was ever pushed - so it can run on both the success and
+        failure paths.
     #>
     if (-not $script:GhStatePushed) { return }
 
@@ -506,7 +581,8 @@ function New-ScaffoldRepo {
     param([Parameter(Mandatory)][string]$OwnerRepo)
     gh repo view $OwnerRepo --json name 2>$null | Out-Null
     if ($LASTEXITCODE -eq 0) { Write-Skip "Repo $OwnerRepo already exists"; return }
-    Invoke-ScaffoldGh -What "Creating $OwnerRepo" -Arguments @('repo', 'create', $OwnerRepo, '--public') | Out-Null
+    Invoke-ScaffoldGh -What "Creating $OwnerRepo" `
+        -Arguments @('repo', 'create', $OwnerRepo, '--public') | Out-Null
     Add-ScaffoldChange
     Write-Ok "Created empty public repo $OwnerRepo"
 }
@@ -516,10 +592,15 @@ function New-ScaffoldRepo {
 #───────────────────────────────────────────────────────────────────────────────
 
 function Set-ScaffoldActionsPermissions {
-    <# Allow GitHub Actions to create and approve PRs (preserves default perms). #>
+    <#
+    .SYNOPSIS
+        Allow GitHub Actions to create and approve PRs (preserves default
+        perms).
+    #>
     param([Parameter(Mandatory)][string]$OwnerRepo)
-    # gh writes its error body to STDOUT, so a failed GET still parses - into an object with
-    # message/status. Under StrictMode, reading a missing property throws, so test first.
+    # gh writes its error body to STDOUT, so a failed GET still parses - into an
+    # object with message/status. Under StrictMode, reading a missing property
+    # throws, so test first.
     $cur = gh api "repos/$OwnerRepo/actions/permissions/workflow" 2>$null | ConvertFrom-Json
     $global:LASTEXITCODE = 0
     $props = if ($cur) { @($cur.PSObject.Properties.Name) } else { @() }
@@ -528,7 +609,8 @@ function Set-ScaffoldActionsPermissions {
         Write-Skip 'Actions create/approve PRs already enabled'; return
     }
     $perm = if ($props -contains 'default_workflow_permissions') { $cur.default_workflow_permissions } else { 'read' }
-    Invoke-ScaffoldGh -What 'Allowing Actions to create and approve PRs' -Arguments @(
+    Invoke-ScaffoldGh -What 'Allowing Actions to create and approve PRs' `
+        -Arguments @(
         'api', '--method', 'PUT', "repos/$OwnerRepo/actions/permissions/workflow",
         '-f', "default_workflow_permissions=$perm", '-F', 'can_approve_pull_request_reviews=true') | Out-Null
     Add-ScaffoldChange
@@ -541,14 +623,19 @@ function Enable-ScaffoldPrivateVulnReporting {
     if ($LASTEXITCODE -eq 0 -and $enabled -eq 'true') {
         Write-Skip 'Private vulnerability reporting already enabled'; return
     }
-    Invoke-ScaffoldGh -What 'Enabling private vulnerability reporting' -Arguments @(
+    Invoke-ScaffoldGh -What 'Enabling private vulnerability reporting' `
+        -Arguments @(
         'api', '--method', 'PUT', "repos/$OwnerRepo/private-vulnerability-reporting", '--silent') | Out-Null
     Add-ScaffoldChange
     Write-Ok "Enabled private vulnerability reporting"
 }
 
 function Set-ScaffoldCodecovSecret {
-    <# Add the CODECOV_TOKEN repo secret. No-op if it already exists (won't overwrite). #>
+    <#
+    .SYNOPSIS
+        Add the CODECOV_TOKEN repo secret. No-op if it already exists (won't
+        overwrite).
+    #>
     param([Parameter(Mandatory)][string]$OwnerRepo, [string]$Token)
     $secrets = gh secret list --repo $OwnerRepo 2>$null
     $global:LASTEXITCODE = 0   # listing may legitimately fail; don't leak it to a later Assert-LastExit
@@ -567,10 +654,12 @@ function Set-ScaffoldCodecovSecret {
 function Initialize-ScaffoldTopics {
     <#
     .SYNOPSIS
-        Seeds one throwaway topic so settings.yml can manage topics from then on.
+        Seeds one throwaway topic so settings.yml can manage topics from then
+        on.
     .DESCRIPTION
-        The Settings app's topics call does not land on a repo that has never had a topic. The
-        real list stays in settings.yml, which overwrites this on the next sync.
+        The Settings app's topics call does not land on a repo that has never
+        had a topic. The real list stays in settings.yml, which overwrites this
+        on the next sync.
     #>
     param([Parameter(Mandatory)][string]$OwnerRepo)
 
@@ -591,14 +680,17 @@ function Initialize-ScaffoldTopics {
 function Enable-ScaffoldImmutableReleases {
     <#
     .SYNOPSIS
-        Enables immutable releases, locking release assets and tags after publication.
+        Enables immutable releases, locking release assets and tags after
+        publication.
     .DESCRIPTION
-        Uses the dedicated /immutable-releases endpoints; the repo PATCH endpoint has no field
-        for it. Still in preview, so failure falls back to the manual checklist.
+        Uses the dedicated /immutable-releases endpoints; the repo PATCH
+        endpoint has no field for it. Still in preview, so failure falls back to
+        the manual checklist.
     #>
     param([Parameter(Mandatory)][string]$OwnerRepo)
 
-    # GET returns 204 when enabled and 404 when not, so the exit code is the answer.
+    # GET returns 204 when enabled and 404 when not, so the exit code is the
+    # answer.
     gh api "repos/$OwnerRepo/immutable-releases" --silent 2>$null | Out-Null
     if ($LASTEXITCODE -eq 0) {
         $global:LASTEXITCODE = 0
@@ -621,8 +713,9 @@ function Enable-ScaffoldImmutableReleases {
         -Steps @("https://github.com/$OwnerRepo/settings  →  General  →  check 'Enable release immutability'")
 }
 
-# CodeQL languages this run should analyse. Layers add to it; Enable-ScaffoldCodeql applies the
-# union at the end. Seeded with 'actions' because every repo here carries workflows AND the
+# CodeQL languages this run should analyse. Layers add to it;
+# Enable-ScaffoldCodeql applies the union at the end. Seeded with 'actions'
+# because every repo here carries workflows AND the
 # inherited "Status checks must pass" ruleset requires the `Analyze (actions)` check - dropping
 # it would leave that check permanently pending and block every PR.
 $script:CodeqlLanguages = [System.Collections.Generic.HashSet[string]]::new(
@@ -644,10 +737,11 @@ $script:CodeqlValidLanguages = @(
 function Add-ScaffoldCodeqlLanguage {
     <#
     .SYNOPSIS
-        Registers CodeQL languages for this layer, adding to whatever ancestors asked for.
+        Registers CodeQL languages for this layer, adding to whatever ancestors
+        asked for.
     .PARAMETER Language
-        One or more of: actions, c-cpp, csharp, go, java-kotlin, javascript-typescript,
-        python, ruby, swift. Anything else throws.
+        One or more of: actions, c-cpp, csharp, go, java-kotlin,
+        javascript-typescript, python, ruby, swift. Anything else throws.
     #>
     param([Parameter(Mandatory)][string[]]$Language)
     foreach ($lang in $Language) {
@@ -667,12 +761,14 @@ function Get-ScaffoldCodeqlLanguage {
 
 function Enable-ScaffoldCodeql {
     <#
-        Enable CodeQL default setup, analysing every language the chain registered via
-        Add-ScaffoldCodeqlLanguage. Call AFTER the first push - the repo needs content.
+        Enable CodeQL default setup, analysing every language the chain
+        registered via Add-ScaffoldCodeqlLanguage. Call AFTER the first push -
+        the repo needs content.
 
-        Unlike the other settings helpers this does NOT simply skip when already configured: a
-        layer may have added a language since, so it extends the existing list instead. What is
-        already configured is always kept, so a language enabled by hand is never removed.
+        Unlike the other settings helpers this does NOT simply skip when already
+        configured: a layer may have added a language since, so it extends the
+        existing list instead. What is already configured is always kept, so a
+        language enabled by hand is never removed.
     #>
     param([Parameter(Mandatory)][string]$OwnerRepo)
 
@@ -690,7 +786,8 @@ function Enable-ScaffoldCodeql {
         return
     }
 
-    # PATCH, not PUT: GitHub does not route PUT here and answers with a bare, generic 404.
+    # PATCH, not PUT: GitHub does not route PUT here and answers with a bare,
+    # generic 404.
     $ghArgs = @('api', '--method', 'PATCH', "repos/$OwnerRepo/code-scanning/default-setup",
         '-f', 'state=configured')
     foreach ($l in $langs) { $ghArgs += @('-f', "languages[]=$l") }
@@ -699,8 +796,9 @@ function Enable-ScaffoldCodeql {
     $global:LASTEXITCODE = 0   # this failure is tolerated; don't leak it to a later Assert-LastExit
 
     if (-not $enabled) {
-        # GitHub 422s on a language the repo does not contain - expected for a template that
-        # declares csharp before it has any C#. Fall back to whatever is actually there.
+        # GitHub 422s on a language the repo does not contain - expected for a
+        # template that declares csharp before it has any C#. Fall back to
+        # whatever is actually there.
         & gh api --method PATCH "repos/$OwnerRepo/code-scanning/default-setup" `
             -f 'state=configured' --silent 2>$null | Out-Null
         $enabled = ($LASTEXITCODE -eq 0)
@@ -715,8 +813,8 @@ function Enable-ScaffoldCodeql {
                 Write-Ok "CodeQL default setup enabled: $(($now | Sort-Object) -join ', ')"
             }
             else {
-                # Nothing moved, so report a skip - this keeps the change count at zero for an
-                # already-scaffolded repo.
+                # Nothing moved, so report a skip - this keeps the change count
+                # at zero for an already-scaffolded repo.
                 Write-Skip "CodeQL already analysing: $(($now | Sort-Object) -join ', ')"
             }
             if ($missing) {
@@ -732,10 +830,11 @@ function Enable-ScaffoldCodeql {
         Write-Ok "CodeQL default setup enabled: $($langs -join ', ')"
     }
     else {
-        # Code scanning may be unavailable on the repo entirely; hand it to the checklist
-        # rather than failing, and a later re-run will pick it up.
+        # Code scanning may be unavailable on the repo entirely; hand it to the
+        # checklist rather than failing, and a later re-run will pick it up.
         Write-Warn 'CodeQL default setup not enabled automatically - added to the checklist'
-        Add-ScaffoldManualItem -Category 'GitHub settings — web UI only (no API)' `
+        Add-ScaffoldManualItem `
+            -Category 'GitHub settings — web UI only (no API)' `
             -Title 'Set up CodeQL default analysis' `
             -Steps @(
             "https://github.com/$OwnerRepo/settings/security_analysis  →  Code scanning  →  Default  →  Enable",
@@ -750,9 +849,10 @@ function Enable-ScaffoldCodeql {
 
 function Get-ScaffoldNewRepoUrl {
     <#
-        Build the git URL for a sibling repo by swapping the owner/repo path in the
-        source URL - preserving host/protocol (incl. custom SSH aliases like
-        git@github.com-personal:...) so the new repo's origin uses the same creds.
+        Build the git URL for a sibling repo by swapping the owner/repo path in
+        the source URL - preserving host/protocol (incl. custom SSH aliases like
+        git@github.com-personal:...) so the new repo's origin uses the same
+        creds.
     #>
     param(
         [Parameter(Mandatory)][pscustomobject]$Context,
@@ -767,13 +867,15 @@ function Get-ScaffoldNewRepoUrl {
 
 function Get-ScaffoldTemplateChain {
     <#
-        Walk the inheritance chain upward from $StartRepoPath by following each repo's
-        'template' remote, and return the LOCAL paths of every layer, nearest-first:
+        Walk the inheritance chain upward from $StartRepoPath by following each
+        repo's 'template' remote, and return the LOCAL paths of every layer,
+        nearest-first:
             [ .template-nuget, .template-dotnet, .github ]
 
-        Each ancestor is located by repo name as a sibling folder in $ParentDir. Walking
-        stops when a repo has no 'template' remote (the base) or when the next ancestor
-        isn't cloned locally. Cycles and runaway depth are guarded.
+        Each ancestor is located by repo name as a sibling folder in $ParentDir.
+        Walking stops when a repo has no 'template' remote (the base) or when
+        the next ancestor isn't cloned locally. Cycles and runaway depth are
+        guarded.
     #>
     param(
         [Parameter(Mandatory)][string]$StartRepoPath,
@@ -802,16 +904,18 @@ function Get-ScaffoldTemplateChain {
         $cur = $resolved
     }
     # Reaching the base layer means the last `git remote get-url template` failed by design.
-    # Clear the leaked exit code so a later Assert-LastExit doesn't see a phantom failure.
+    # Clear the leaked exit code so a later Assert-LastExit doesn't see a
+    # phantom failure.
     $global:LASTEXITCODE = 0
     return $chain.ToArray()
 }
 
 function Set-ScaffoldRemotesAndConfig {
     <#
-        Idempotently ensure the 'template' remote, push default, commit template, and
-        that 'main' exists & is checked out. Creates main from the template branch ONLY
-        if it doesn't already exist - so resuming never resets existing history.
+        Idempotently ensure the 'template' remote, push default, commit
+        template, and that 'main' exists & is checked out. Creates main from the
+        template branch ONLY if it doesn't already exist - so resuming never
+        resets existing history.
     #>
     param(
         [Parameter(Mandatory)][string]$RepoPath,
@@ -820,29 +924,39 @@ function Set-ScaffoldRemotesAndConfig {
     git -C $RepoPath config remote.pushdefault origin | Out-Null
     $remotes = git -C $RepoPath remote 2>$null
     if ($remotes -notcontains 'template') {
-        Invoke-ScaffoldGit -What "Adding the 'template' remote" -RepoPath $RepoPath -Arguments @('remote', 'add', 'template', $TemplateUrl) | Out-Null
+        Invoke-ScaffoldGit -What "Adding the 'template' remote" `
+            -RepoPath $RepoPath `
+                -Arguments @('remote', 'add', 'template', $TemplateUrl) | Out-Null
     }
     else {
         git -C $RepoPath remote set-url template $TemplateUrl | Out-Null
     }
-    Invoke-ScaffoldGit -What 'Fetching the template remote' -RepoPath $RepoPath -Arguments @('fetch', 'template') | Out-Null
+    Invoke-ScaffoldGit -What 'Fetching the template remote' `
+        -RepoPath $RepoPath -Arguments @('fetch', 'template') | Out-Null
     git -C $RepoPath config commit.template .gitmessage | Out-Null
 
     git -C $RepoPath show-ref --verify --quiet refs/heads/main
     if ($LASTEXITCODE -ne 0) {
-        Invoke-ScaffoldGit -What "Creating main from template/$($script:TemplateBranch)" `
-            -RepoPath $RepoPath -Arguments @('checkout', '-B', 'main', "template/$($script:TemplateBranch)") | Out-Null
+        Invoke-ScaffoldGit `
+            -What "Creating main from template/$($script:TemplateBranch)" `
+            -RepoPath $RepoPath `
+                -Arguments @('checkout', '-B', 'main', "template/$($script:TemplateBranch)") | Out-Null
     }
     else {
         $branch = git -C $RepoPath rev-parse --abbrev-ref HEAD 2>$null
         if ($branch -ne 'main') {
-            Invoke-ScaffoldGit -What 'Switching to main' -RepoPath $RepoPath -Arguments @('checkout', 'main') | Out-Null
+            Invoke-ScaffoldGit -What 'Switching to main' -RepoPath $RepoPath `
+                -Arguments @('checkout', 'main') | Out-Null
         }
     }
 }
 
 function Initialize-ScaffoldClone {
-    <# Clone the new repo next to the template (or reuse an existing local clone). #>
+    <#
+    .SYNOPSIS
+        Clone the new repo next to the template (or reuse an existing local
+        clone).
+    #>
     param(
         [Parameter(Mandatory)][string]$OriginUrl,
         [Parameter(Mandatory)][string]$TargetPath,
@@ -856,7 +970,8 @@ function Initialize-ScaffoldClone {
     }
     else {
         # git clone (not `gh repo clone`) keeps the source URL's host alias/creds.
-        Invoke-ScaffoldGit -What "Cloning $OriginUrl" -Arguments @('clone', $OriginUrl, $TargetPath) | Out-Null
+        Invoke-ScaffoldGit -What "Cloning $OriginUrl" `
+            -Arguments @('clone', $OriginUrl, $TargetPath) | Out-Null
         Add-ScaffoldChange
         Write-Ok "Cloned $OriginUrl"
         Write-Detail "-> $TargetPath"
@@ -870,9 +985,10 @@ function Test-ScaffoldCommitExists {
     .SYNOPSIS
         True if THIS repo already made a commit with this exact subject.
     .DESCRIPTION
-        Scoped to template/<branch>..HEAD. Searching all history would match the same commits
-        inherited from an already-scaffolded parent and skip customizing the new repo entirely.
-        Returns false when the template ref is missing, so the step re-runs harmlessly.
+        Scoped to template/<branch>..HEAD. Searching all history would match the
+        same commits inherited from an already-scaffolded parent and skip
+        customizing the new repo entirely. Returns false when the template ref
+        is missing, so the step re-runs harmlessly.
     #>
     param(
         [Parameter(Mandatory)][string]$RepoPath,
@@ -881,8 +997,9 @@ function Test-ScaffoldCommitExists {
     git -C $RepoPath rev-parse --verify --quiet "template/$($script:TemplateBranch)" | Out-Null
     if ($LASTEXITCODE -ne 0) { $global:LASTEXITCODE = 0; return $false }   # no template ref yet
 
-    # Exact subject match, so one group's message can't satisfy another's gate by prefix.
-    # A reverted step still reads as done, since the original subject remains in the range.
+    # Exact subject match, so one group's message can't satisfy another's gate
+    # by prefix. A reverted step still reads as done, since the original subject
+    # remains in the range.
     $subjects = git -C $RepoPath log --format='%s' "template/$($script:TemplateBranch)..HEAD" 2>$null
     return [bool](@($subjects) -ceq $Message)
 }
@@ -892,7 +1009,11 @@ function Test-ScaffoldCommitExists {
 #───────────────────────────────────────────────────────────────────────────────
 
 function Remove-ScaffoldTemplateOnlyFiles {
-    <# Delete the files that live ONLY in the base .github repo (see $TemplateOnlyFiles). #>
+    <#
+    .SYNOPSIS
+        Delete the files that live ONLY in the base .github repo (see
+        $TemplateOnlyFiles).
+    #>
     param([Parameter(Mandatory)][string]$RepoPath)
     $gone = 0
     foreach ($entry in $script:TemplateOnlyFiles) {
@@ -903,7 +1024,11 @@ function Remove-ScaffoldTemplateOnlyFiles {
 }
 
 function Update-ScaffoldReferences {
-    <# Replace references to the source template's owner/repo with the new repo's. #>
+    <#
+    .SYNOPSIS
+        Replace references to the source template's owner/repo with the new
+        repo's.
+    #>
     param(
         [Parameter(Mandatory)][string]$RepoPath,
         [Parameter(Mandatory)][string]$OldOwnerRepo,
@@ -920,7 +1045,8 @@ function Update-ScaffoldReferences {
         if (Test-Path $f) {
             $raw = Get-Content -Raw $f
             if ($raw.Contains($OldOwnerRepo)) {
-                $raw.Replace($OldOwnerRepo, $NewOwnerRepo) | Set-Content -NoNewline $f
+                $raw.Replace($OldOwnerRepo, $NewOwnerRepo) | Set-Content `
+                    -NoNewline $f
                 Write-Ok "Updated references in $rel"
             }
         }
@@ -930,10 +1056,12 @@ function Update-ScaffoldReferences {
 function Update-ScaffoldReadme {
     <#
     .SYNOPSIS
-        De-links the README rows for the template-only files, then prunes orphaned link refs.
+        De-links the README rows for the template-only files, then prunes
+        orphaned link refs.
     .DESCRIPTION
-        De-links rather than deletes: the table's "Exists only in .github repo" column is what
-        documents that the file is deliberately absent here, so the row must survive.
+        De-links rather than deletes: the table's "Exists only in .github repo"
+        column is what documents that the file is deliberately absent here, so
+        the row must survive.
     #>
     param(
         [Parameter(Mandatory)][string]$RepoPath,
@@ -976,10 +1104,12 @@ function Set-ScaffoldTemplateSyncConfig {
     .SYNOPSIS
         Points Template Sync at this repo's parent and enables the schedule.
     .DESCRIPTION
-        Retargeting matters: TEMPLATE_REPO_URL is inherited verbatim, so without this a level-2
-        repo keeps syncing from its GRANDparent and never sees its actual parent's changes.
+        Retargeting matters: TEMPLATE_REPO_URL is inherited verbatim, so without
+        this a level-2 repo keeps syncing from its GRANDparent and never sees
+        its actual parent's changes.
     .PARAMETER TemplateOwnerRepo
-        The parent template as owner/repo; normalised to the https URL the workflow needs.
+        The parent template as owner/repo; normalised to the https URL the
+        workflow needs.
     #>
     param(
         [Parameter(Mandatory)][string]$RepoPath,
@@ -991,12 +1121,14 @@ function Set-ScaffoldTemplateSyncConfig {
     $raw = Get-Content -Raw $f
     $original = $raw
 
-    # Use [^\r\n] and [ \t], never '.' or \s: '.' matches CR and would convert CRLF to LF.
+    # Use [^\r\n] and [ \t], never '.' or \s: '.' matches CR and would convert
+    # CRLF to LF.
     $httpsUrl = "https://github.com/$TemplateOwnerRepo.git"
     $raw = $raw -replace '(?m)^([ \t]*TEMPLATE_REPO_URL:[ \t]*)[^\r\n]*', "`${1}$httpsUrl"
 
-    # Match the SHAPE of the lines, never a specific cron: half-uncommenting the block yields
-    # a 'schedule:' with no entries, which GitHub rejects. No '$' anchor - CRLF defeats it.
+    # Match the SHAPE of the lines, never a specific cron: half-uncommenting the
+    # block yields a 'schedule:' with no entries, which GitHub rejects. No '$'
+    # anchor - CRLF defeats it.
     $raw = $raw -replace '(?m)^([ \t]*)#[ \t]*(schedule:)', '$1$2'
     $raw = $raw -replace '(?m)^([ \t]*)#[ \t]*(- cron:[^\r\n]*)', '$1  $2'
 
@@ -1004,7 +1136,8 @@ function Set-ScaffoldTemplateSyncConfig {
     $raw | Set-Content -NoNewline $f
     Write-Ok 'Configured Template Sync'
     Write-Detail "source   : $httpsUrl"
-    # Report the cron the template actually declares rather than assuming a cadence.
+    # Report the cron the template actually declares rather than assuming a
+    # cadence.
     $cronLine = ([regex]::Match($raw, '(?m)^[ \t]*- cron:[ \t]*(.+?)[ \t]*\r?$')).Groups[1].Value
     Write-Detail "schedule : $(if ($cronLine) { $cronLine } else { '(no cron found)' })"
 }
@@ -1018,10 +1151,10 @@ function Remove-ScaffoldScripts {
 
 function Add-ScaffoldGitExclude {
     <#
-        Add a pattern to .git/info/exclude - a per-clone ignore list that is never
-        committed, so it can't leak into the template chain the way .gitignore would.
-        Idempotent. Uses LF: this is a git-internal control file, and a stray CR would
-        become part of the pattern.
+        Add a pattern to .git/info/exclude - a per-clone ignore list that is
+        never committed, so it can't leak into the template chain the way
+        .gitignore would. Idempotent. Uses LF: this is a git-internal control
+        file, and a stray CR would become part of the pattern.
     #>
     param(
         [Parameter(Mandatory)][string]$RepoPath,
@@ -1042,10 +1175,12 @@ function Add-ScaffoldGitExclude {
 function Write-ScaffoldSettings {
     <#
     .SYNOPSIS
-        Writes the minimal _extends settings.yml; Kind=Code also sets is_template: false.
+        Writes the minimal _extends settings.yml; Kind=Code also sets
+        is_template: false.
     .DESCRIPTION
-        Skipped only when the file already names THIS repo. Testing for '_extends:' alone would
-        wrongly preserve the parent's inherited settings.yml.
+        Skipped only when the file already names THIS repo. Testing for
+        '_extends:' alone would wrongly preserve the parent's inherited
+        settings.yml.
     #>
     param(
         [Parameter(Mandatory)][string]$RepoPath,
@@ -1120,7 +1255,8 @@ function Write-ScaffoldSettings {
             '  allow_rebase_merge: false'
         ) | ForEach-Object { $lines.Add($_) }
     }
-    ($lines -join "`r`n") + "`r`n" | Set-Content -NoNewline -Encoding utf8 $settingsPath
+    ($lines -join "`r`n") + "`r`n" | Set-Content -NoNewline `
+        -Encoding utf8 $settingsPath
     Write-Ok "Wrote .github/settings.yml ($Kind)"
 }
 
@@ -1131,16 +1267,19 @@ function Write-ScaffoldSettings {
 function Write-ScaffoldWorkspaceFile {
     <#
     .SYNOPSIS
-        Writes a multi-root <repo>.code-workspace spanning the new repo and its template chain.
+        Writes a multi-root <repo>.code-workspace spanning the new repo and its
+        template chain.
     .DESCRIPTION
-        Paths resolve against this file's own folder, so the new repo is "." and its ancestors
-        are "../<name>", forward slashes only. The new repo is listed first because tooling that
-        is not multi-root aware only sees folders[0]. dotnet.defaultSolution is window-scoped, so
-        it must live in the workspace 'settings' block - it is ignored per-folder.
+        Paths resolve against this file's own folder, so the new repo is "." and
+        its ancestors are "../<name>", forward slashes only. The new repo is
+        listed first because tooling that is not multi-root aware only sees
+        folders[0]. dotnet.defaultSolution is window-scoped, so it must live in
+        the workspace 'settings' block - it is ignored per-folder.
     .PARAMETER ChainPaths
         Ancestor template paths, nearest first.
     .PARAMETER Force
-        Overwrite an existing workspace file instead of leaving your edits alone.
+        Overwrite an existing workspace file instead of leaving your edits
+        alone.
     #>
     param(
         [Parameter(Mandatory)][string]$RepoPath,
@@ -1155,7 +1294,8 @@ function Write-ScaffoldWorkspaceFile {
         return $wsPath
     }
 
-    # ── folders: primary repo first, then each ancestor as a sibling relative path ──
+    # ── folders: primary repo first, then each ancestor as a sibling relative
+    # path ──
     $folders = [System.Collections.Generic.List[string]]::new()
     $folders.Add("`t`t// The new repo. Listed first so it is folders[0] (the de facto primary).")
     $folders.Add("`t`t{ `"name`": `"$RepoName`", `"path`": `".`" },")
@@ -1168,10 +1308,11 @@ function Write-ScaffoldWorkspaceFile {
         }
     }
 
-    # Pin the primary repo's solution, or C# Dev Kit adopts a template layer's placeholder
-    # one - or prompts on every open when it finds several.
+    # Pin the primary repo's solution, or C# Dev Kit adopts a template layer's
+    # placeholder one - or prompts on every open when it finds several.
     $slns = @(
-        Get-ChildItem -LiteralPath $repoFull -Include *.sln, *.slnx, *.slnf -File -Recurse -Depth 3 -ErrorAction SilentlyContinue |
+        Get-ChildItem -LiteralPath $repoFull -Include *.sln, *.slnx, *.slnf `
+            -File -Recurse -Depth 3 -ErrorAction SilentlyContinue |
             Where-Object { $_.FullName -notmatch '[\\/](bin|obj|node_modules|\.git)[\\/]' } |
             Sort-Object FullName
     )
@@ -1210,7 +1351,8 @@ function Write-ScaffoldWorkspaceFile {
         '}'
     ) | ForEach-Object { $lines.Add($_) }
 
-    ($lines -join "`r`n") + "`r`n" | Set-Content -NoNewline -Encoding utf8 $wsPath
+    ($lines -join "`r`n") + "`r`n" | Set-Content -NoNewline `
+        -Encoding utf8 $wsPath
     Add-ScaffoldChange
     Write-Ok "Wrote $RepoName.code-workspace ($(1 + $ChainPaths.Count) folders)"
     return $wsPath
@@ -1218,12 +1360,14 @@ function Write-ScaffoldWorkspaceFile {
 
 function Start-ScaffoldVSCode {
     <#
-        Open a path (folder or .code-workspace) in VS Code as a separate, detached process.
+        Open a path (folder or .code-workspace) in VS Code as a separate,
+        detached process.
 
-        Prefers Code.exe over the code.cmd shim: launching the .cmd through Start-Process
-        flashes a console window, while the exe returns immediately and cleanly. Falls back
-        to the shim, then to Insiders. Never throws - failing to open an editor should not
-        fail a successful scaffold.
+        Prefers Code.exe over the code.cmd shim: launching the .cmd through
+        Start-Process flashes a console window, while the exe returns
+        immediately and cleanly. Falls back to the shim, then to Insiders. Never
+        throws - failing to open an editor should not fail a successful
+        scaffold.
     #>
     param(
         [Parameter(Mandatory)][string]$Target,
@@ -1231,7 +1375,8 @@ function Start-ScaffoldVSCode {
     )
     $exe = $null
 
-    # Derive Code.exe from the shim on PATH: <root>\bin\code.cmd -> <root>\Code.exe
+    # Derive Code.exe from the shim on PATH: <root>\bin\code.cmd ->
+    # <root>\Code.exe
     foreach ($cliName in 'code', 'code-insiders') {
         $cli = Get-Command $cliName -ErrorAction SilentlyContinue
         if (-not $cli) { continue }
@@ -1274,13 +1419,16 @@ function Start-ScaffoldVSCode {
 function Invoke-ScaffoldGatedCommit {
     <#
     .SYNOPSIS
-        Runs a group of related changes and commits them, unless that commit already exists.
+        Runs a group of related changes and commits them, unless that commit
+        already exists.
     .DESCRIPTION
-        $Message is both the commit subject and the idempotency key, so rewording one silently
-        makes an already-scaffolded repo look unscaffolded.
+        $Message is both the commit subject and the idempotency key, so
+        rewording one silently makes an already-scaffolded repo look
+        unscaffolded.
     .PARAMETER Paths
-        Pathspec to stage. Omit to stage exactly what -Body changed, which is what you want for
-        anything repo-wide. Either way your own uncommitted work is excluded.
+        Pathspec to stage. Omit to stage exactly what -Body changed, which is
+        what you want for anything repo-wide. Either way your own uncommitted
+        work is excluded.
     .PARAMETER Body
         Scriptblock; still sees the calling script's variables.
     #>
@@ -1297,12 +1445,13 @@ function Invoke-ScaffoldGatedCommit {
 
     if ($Paths) {
         & $Body
-        Invoke-ScaffoldCommit -RepoPath $RepoPath -Message $Message -Paths $Paths
+        Invoke-ScaffoldCommit -RepoPath $RepoPath -Message $Message `
+            -Paths $Paths
         return
     }
 
-    # No -Paths: stage exactly what the body touched. A hand-maintained list would silently
-    # omit files a repo-wide rename moved.
+    # No -Paths: stage exactly what the body touched. A hand-maintained list
+    # would silently omit files a repo-wide rename moved.
     $before = @(Get-ScaffoldDirtyPath -RepoPath $RepoPath)
     & $Body
     $touched = @(Get-ScaffoldDirtyPath -RepoPath $RepoPath | Where-Object { $_ -notin $before })
@@ -1314,8 +1463,9 @@ function Get-ScaffoldDirtyPath {
     <#
         Paths git currently reports as changed, one per entry.
 
-        A rename shows up as 'R  old -> new'; BOTH sides are returned, because staging only the
-        new path would leave the deletion of the old one out of the commit.
+        A rename shows up as 'R old -> new'; BOTH sides are returned, because
+        staging only the new path would leave the deletion of the old one out of
+        the commit.
     #>
     param([Parameter(Mandatory)][string]$RepoPath)
     $lines = @(git -C $RepoPath status --porcelain 2>$null)
@@ -1335,10 +1485,12 @@ function Get-ScaffoldDirtyPath {
 function Invoke-ScaffoldLayer {
     <#
     .SYNOPSIS
-        Runs each layer module's entry point, base layer first. No-op if the chain has none.
+        Runs each layer module's entry point, base layer first. No-op if the
+        chain has none.
     .DESCRIPTION
-        Layers commit their own work via Invoke-ScaffoldGatedCommit; this only warns if one
-        leaves changes uncommitted, since every later step stages an explicit pathspec.
+        Layers commit their own work via Invoke-ScaffoldGatedCommit; this only
+        warns if one leaves changes uncommitted, since every later step stages
+        an explicit pathspec.
     .PARAMETER Context
         RepoPath, RepoName, Kind, OwnerRepo, SourceOwnerRepo.
     #>
@@ -1351,8 +1503,9 @@ function Invoke-ScaffoldLayer {
         Write-Skip 'No Helpers-*.psm1 layers in this chain - nothing template-specific to apply'
         return
     }
-    # Snapshot first so the check below reports only what the LAYERS dirtied - the developer's
-    # own uncommitted work was already there and is none of our business.
+    # Snapshot first so the check below reports only what the LAYERS dirtied -
+    # the developer's own uncommitted work was already there and is none of our
+    # business.
     $status = { @(git -C $RepoPath status --porcelain 2>$null); $global:LASTEXITCODE = 0 }
     $before = @(& $status)
 
@@ -1361,8 +1514,9 @@ function Invoke-ScaffoldLayer {
         & $layer.Entry -Context $Context
     }
 
-    # A layer that changed files but committed nothing would leave them uncommitted forever:
-    # every later step stages an explicit pathspec, so nothing else picks them up.
+    # A layer that changed files but committed nothing would leave them
+    # uncommitted forever: every later step stages an explicit pathspec, so
+    # nothing else picks them up.
     $left = @((& $status) | Where-Object { $_ -notin $before })
     if ($left) {
         Write-Warn "$($left.Count) file(s) changed by a layer but left uncommitted"
@@ -1374,9 +1528,11 @@ function Invoke-ScaffoldLayer {
 function Rename-ScaffoldToken {
     <#
     .SYNOPSIS
-        Replaces a placeholder token in file content, file names and directory names.
+        Replaces a placeholder token in file content, file names and directory
+        names.
     .DESCRIPTION
-        Deepest paths first, so renaming a parent cannot invalidate its children's paths.
+        Deepest paths first, so renaming a parent cannot invalidate its
+        children's paths.
     .PARAMETER SkipExtension
         Binary-ish extensions to leave alone.
     .PARAMETER Exclude
@@ -1392,15 +1548,18 @@ function Rename-ScaffoldToken {
     if ($From -eq $To) { Write-Skip "Nothing to rename ('$From' is already '$To')"; return }
 
     $skipRx = '[\\/](' + (($Exclude | ForEach-Object { [regex]::Escape($_) }) -join '|') + ')[\\/]'
-    $all = @(Get-ChildItem -LiteralPath $RepoPath -Recurse -Force -ErrorAction SilentlyContinue |
+    $all = @(Get-ChildItem -LiteralPath $RepoPath -Recurse -Force `
+        -ErrorAction SilentlyContinue |
             Where-Object { $_.FullName -notmatch $skipRx })
 
     # 1) content
     $edited = 0
     foreach ($f in @($all | Where-Object { -not $_.PSIsContainer -and $_.Extension -notin $SkipExtension })) {
-        $raw = Get-Content -LiteralPath $f.FullName -Raw -ErrorAction SilentlyContinue
+        $raw = Get-Content -LiteralPath $f.FullName -Raw `
+            -ErrorAction SilentlyContinue
         if ($null -ne $raw -and $raw.Contains($From)) {
-            $raw.Replace($From, $To) | Set-Content -LiteralPath $f.FullName -NoNewline
+            $raw.Replace($From, $To) | Set-Content -LiteralPath $f.FullName `
+                -NoNewline
             $edited++
         }
     }
@@ -1410,7 +1569,8 @@ function Rename-ScaffoldToken {
     foreach ($item in @($all | Where-Object { $_.Name.Contains($From) } |
                 Sort-Object { $_.FullName.Split([char]'\').Count } -Descending)) {
         if (-not (Test-Path -LiteralPath $item.FullName)) { continue }   # parent already renamed
-        Rename-Item -LiteralPath $item.FullName -NewName ($item.Name.Replace($From, $To)) -ErrorAction Stop
+        Rename-Item -LiteralPath $item.FullName `
+            -NewName ($item.Name.Replace($From, $To)) -ErrorAction Stop
         $renamed++
     }
 
@@ -1421,21 +1581,24 @@ function Rename-ScaffoldToken {
 
 function Invoke-ScaffoldCommit {
     <#
-        Stage the paths this group owns and commit, but only if something is actually staged.
+        Stage the paths this group owns and commit, but only if something is
+        actually staged.
 
-        -Paths is a deliberate safety boundary. Staging everything ('git add -A') is unsafe on
-        a re-run: if a group legitimately produces no diff (because the parent template
-        already did that work), no commit is made, so its gate stays false and the group runs
-        again on every future run - sweeping a developer's unrelated uncommitted work into a
-        'chore:' commit. Scoping the pathspec makes an ungated no-diff group harmless.
+        -Paths is a deliberate safety boundary. Staging everything ('git add
+        -A') is unsafe on a re-run: if a group legitimately produces no diff
+        (because the parent template already did that work), no commit is made,
+        so its gate stays false and the group runs again on every future run -
+        sweeping a developer's unrelated uncommitted work into a 'chore:'
+        commit. Scoping the pathspec makes an ungated no-diff group harmless.
     #>
     param(
         [Parameter(Mandatory)][string]$RepoPath,
         [Parameter(Mandatory)][string]$Message,
         [string[]]$Paths = @('.')
     )
-    # 'git add -- <path>' is a hard error when the path is neither on disk nor tracked, so
-    # drop those first (e.g. scripts/ in a template repo, which is untouched).
+    # 'git add -- <path>' is a hard error when the path is neither on disk nor
+    # tracked, so drop those first (e.g. scripts/ in a template repo, which is
+    # untouched).
     $spec = @($Paths | Where-Object {
             if (Test-Path (Join-Path $RepoPath $_)) { return $true }
             git -C $RepoPath ls-files --error-unmatch -- $_ 2>&1 | Out-Null
@@ -1445,12 +1608,15 @@ function Invoke-ScaffoldCommit {
         })
     if (-not $spec) { Write-Skip "Nothing to stage for: $Message"; return }
 
-    Invoke-ScaffoldGit -What 'Staging changes' -RepoPath $RepoPath -Arguments (@('add', '-A', '--') + $spec) | Out-Null
+    Invoke-ScaffoldGit -What 'Staging changes' -RepoPath $RepoPath `
+        -Arguments (@('add', '-A', '--') + $spec) | Out-Null
     git -C $RepoPath diff --cached --quiet
     if ($LASTEXITCODE -ne 0) {
-        # Summarise what is going in BEFORE committing, so the log shows the grouping.
+        # Summarise what is going in BEFORE committing, so the log shows the
+        # grouping.
         $staged = @(git -C $RepoPath diff --cached --name-status 2>$null)
-        Invoke-ScaffoldGit -What "Committing '$Message'" -RepoPath $RepoPath -Arguments @('commit', '-m', $Message) | Out-Null
+        Invoke-ScaffoldGit -What "Committing '$Message'" -RepoPath $RepoPath `
+            -Arguments @('commit', '-m', $Message) | Out-Null
         Add-ScaffoldChange
         Write-Ok "Committed: $Message"
         foreach ($line in $staged) {
@@ -1466,7 +1632,8 @@ function Invoke-ScaffoldCommit {
 function Push-ScaffoldRepo {
     <# Push main. Idempotent: 'Everything up-to-date' when nothing changed. #>
     param([Parameter(Mandatory)][string]$RepoPath)
-    $out = Invoke-ScaffoldGit -What 'Pushing main' -RepoPath $RepoPath -Arguments @('push', '-u', 'origin', 'main')
+    $out = Invoke-ScaffoldGit -What 'Pushing main' -RepoPath $RepoPath `
+        -Arguments @('push', '-u', 'origin', 'main')
     if (($out | Out-String) -match 'Everything up-to-date') {
         Write-Skip 'main already up to date on the remote'
     }
@@ -1477,7 +1644,11 @@ function Push-ScaffoldRepo {
 }
 
 function Start-ScaffoldTemplateSync {
-    <# Dispatch the Template Sync workflow to verify it works & initialize its baseline. #>
+    <#
+    .SYNOPSIS
+        Dispatch the Template Sync workflow to verify it works & initialize its
+        baseline.
+    #>
     param([Parameter(Mandatory)][string]$OwnerRepo)
     & gh workflow run template-sync.yml --repo $OwnerRepo --ref main 2>&1 | Out-Null
     if ($LASTEXITCODE -eq 0) {
