@@ -1,0 +1,201 @@
+# yaml-language-server: $schema=https://json.schemastore.org/github-workflow.json
+
+name: Template Sync
+
+on:
+  # Runs nightly at midnight UTC (https://crontab.guru/#0_0_*_*_*)
+  # schedule:
+  #   - cron: "0 0 * * *"
+
+  # Can be triggered manually
+  workflow_dispatch:
+
+# One sync at a time. A second run would fight the first over the branch.
+concurrency:
+  group: template-sync
+  cancel-in-progress: false
+
+env:
+  GIT_USERNAME: github-actions
+  GIT_EMAIL: github-actions@github.com
+  TEMPLATE_REPO_URL: https://github.com/TaffarelJr/.github.git
+  TEMPLATE_REPO_NAME: template
+  TEMPLATE_REPO_BRANCH: main
+  BASE_BRANCH_NAME: main
+  SYNC_BRANCH_NAME: template-sync
+  # rebase = a template layer: replay the parent's commits so history stays
+  # linear and no merge commit of ours can reach a leaf.
+  # merge = a leaf: record a merge commit, because a leaf is derived from but
+  # never derived FROM, so its merge commits stop with it.
+  SYNC_STRATEGY: rebase
+
+jobs:
+  template-sync:
+    name: Sync with Template Repo
+    runs-on: ubuntu-latest
+
+    defaults:
+      run:
+        shell: bash
+
+    permissions:
+      contents: write # Needed to push the sync branch
+      pull-requests: write # Needed to create PRs
+
+    steps:
+      # A base template has no parent, but still inherits this workflow, which
+      # leaves the URL pointing at itself. Fail loudly rather than "syncing" a
+      # repo with its own history.
+      - name: Verify configuration
+        run: |
+          if [[ "${TEMPLATE_REPO_URL}" == *"/${GITHUB_REPOSITORY#*/}.git" ]]; then
+            echo "::error::TEMPLATE_REPO_URL points at this repo. A base template has no parent to sync from."
+            exit 1
+          fi
+          if [[ "${SYNC_STRATEGY}" != "rebase" && "${SYNC_STRATEGY}" != "merge" ]]; then
+            echo "::error::SYNC_STRATEGY must be 'rebase' or 'merge', not '${SYNC_STRATEGY}'."
+            exit 1
+          fi
+
+      - name: Checkout repo
+        uses: actions/checkout@v7
+        with:
+          fetch-depth: 0 # Needed for merging and rebasing
+          # A PAT lets the sync PR trigger CI. The default token cannot: pull
+          # requests it opens never fire pull_request workflows, so required
+          # status checks would never report and the PR could never merge.
+          token: ${{ secrets.TEMPLATE_SYNC_PAT || secrets.GITHUB_TOKEN }}
+
+      - name: Configure Git
+        run: |
+          git config user.name "${GIT_USERNAME}"
+          git config user.email "${GIT_EMAIL}"
+
+      - name: Fetch the parent template
+        run: |
+          git remote remove "${TEMPLATE_REPO_NAME}" 2>/dev/null || true
+          git remote add "${TEMPLATE_REPO_NAME}" "${TEMPLATE_REPO_URL}"
+          git fetch --prune "${TEMPLATE_REPO_NAME}" "${TEMPLATE_REPO_BRANCH}"
+
+      # Compare by patch, not by commit id. Rebasing gives the parent's commits
+      # new ids on the way down, so asking "which commits are missing" would
+      # report the same work forever; asking "which patches are missing" is
+      # what actually converges.
+      - name: Decide what needs doing
+        id: plan
+        run: |
+          upstream="${TEMPLATE_REPO_NAME}/${TEMPLATE_REPO_BRANCH}"
+
+          missing=$(git cherry "origin/${BASE_BRANCH_NAME}" "${upstream}" \
+            | grep -c '^+' || true)
+          echo "missing=${missing}" >> "$GITHUB_OUTPUT"
+
+          if [[ "${missing}" == "0" ]]; then
+            echo "proceed=false" >> "$GITHUB_OUTPUT"
+            echo "::notice::Already carries every patch from the template."
+            exit 0
+          fi
+
+          # An open sync branch that is already built on the current main and
+          # already carries every missing patch needs no rebuilding. Leaving it
+          # alone is what preserves a conflict resolution someone pushed to it.
+          if git rev-parse --verify -q "origin/${SYNC_BRANCH_NAME}" >/dev/null; then
+            stale=$(git cherry "origin/${SYNC_BRANCH_NAME}" "${upstream}" \
+              | grep -c '^+' || true)
+            if [[ "${stale}" == "0" ]] \
+              && git merge-base --is-ancestor \
+                "origin/${BASE_BRANCH_NAME}" "origin/${SYNC_BRANCH_NAME}"; then
+              echo "proceed=false" >> "$GITHUB_OUTPUT"
+              echo "::notice::The existing ${SYNC_BRANCH_NAME} branch is already current."
+              exit 0
+            fi
+          fi
+
+          echo "proceed=true" >> "$GITHUB_OUTPUT"
+          echo "::notice::${missing} patch(es) to bring down via ${SYNC_STRATEGY}."
+
+      - name: Build the sync branch
+        id: build
+        if: steps.plan.outputs.proceed == 'true'
+        run: |
+          upstream="${TEMPLATE_REPO_NAME}/${TEMPLATE_REPO_BRANCH}"
+          conflict=false
+
+          if [[ "${SYNC_STRATEGY}" == "rebase" ]]; then
+            # Start at the parent's tip and replay it onto our main. Rebase
+            # drops patches main already has, so only genuinely new work lands,
+            # and the result is linear.
+            git checkout -B "${SYNC_BRANCH_NAME}" "${upstream}"
+            if ! git rebase "origin/${BASE_BRANCH_NAME}"; then
+              conflict=true
+              while [[ -d .git/rebase-merge || -d .git/rebase-apply ]]; do
+                git diff --name-only --diff-filter=U >> /tmp/conflicts.txt
+                git add -A
+                git -c core.editor=true rebase --continue || true
+              done
+            fi
+          else
+            git checkout -B "${SYNC_BRANCH_NAME}" "origin/${BASE_BRANCH_NAME}"
+            if ! git merge --no-edit "${upstream}"; then
+              conflict=true
+              git diff --name-only --diff-filter=U >> /tmp/conflicts.txt
+              # MERGE_HEAD is still set, so this keeps both parents and git
+              # records that the merge happened. Left uncommitted, the next run
+              # would attempt the same merge again.
+              git add -A
+              git -c core.editor=true commit --no-edit
+            fi
+          fi
+
+          echo "conflict=${conflict}" >> "$GITHUB_OUTPUT"
+          if [[ "${conflict}" == "true" ]]; then
+            files=$(sort -u /tmp/conflicts.txt | sed '/^$/d' | tr '\n' ' ')
+            echo "::warning::Conflicts, committed as-is, in: ${files}"
+          fi
+
+      - name: Push the sync branch
+        if: steps.plan.outputs.proceed == 'true'
+        run: git push --force origin "${SYNC_BRANCH_NAME}"
+
+      - name: Create or update the PR
+        if: steps.plan.outputs.proceed == 'true'
+        env:
+          GH_TOKEN: ${{ secrets.TEMPLATE_SYNC_PAT || secrets.GITHUB_TOKEN }}
+          CONFLICT: ${{ steps.build.outputs.conflict }}
+          MISSING: ${{ steps.plan.outputs.missing }}
+        run: |
+          if [[ "${CONFLICT}" == "true" ]]; then
+            title="NEEDS RESOLUTION: Merge changes from template repo"
+            note="⚠️ **Conflicts were committed as-is and must be resolved before merging.** See the job log for the file list."
+          else
+            title="Merge changes from template repo"
+            note="✅ Applied cleanly."
+          fi
+
+          body=$(printf '%s\n\n%s\n\n%s\n' \
+            "Automated sync of ${MISSING} patch(es) from \`${TEMPLATE_REPO_URL}\` via \`${SYNC_STRATEGY}\`." \
+            "${note}" \
+            "This branch is rebuilt whenever either side moves, so it stays current until merged.")
+
+          number=$(gh pr list --repo "${GITHUB_REPOSITORY}" \
+            --head "${SYNC_BRANCH_NAME}" --state open \
+            --json number --jq '.[0].number // empty')
+
+          if [[ -z "${number}" ]]; then
+            gh pr create --repo "${GITHUB_REPOSITORY}" \
+              --base "${BASE_BRANCH_NAME}" --head "${SYNC_BRANCH_NAME}" \
+              --title "${title}" --body "${body}" --label 'template sync'
+            number=$(gh pr list --repo "${GITHUB_REPOSITORY}" \
+              --head "${SYNC_BRANCH_NAME}" --state open \
+              --json number --jq '.[0].number // empty')
+          else
+            gh pr edit "${number}" --repo "${GITHUB_REPOSITORY}" \
+              --title "${title}" --body "${body}"
+          fi
+
+          if [[ "${CONFLICT}" == "true" ]]; then
+            gh pr edit "${number}" --repo "${GITHUB_REPOSITORY}" --add-label 'needs fix'
+          else
+            gh pr edit "${number}" --repo "${GITHUB_REPOSITORY}" --remove-label 'needs fix' || true
+          fi
+          echo "::notice::Pull request #${number} is ready for review."
