@@ -1,0 +1,88 @@
+# yaml-language-server: $schema=https://raw.githubusercontent.com/GitTools/GitVersion/main/schemas/6.0/GitVersion.configuration.json
+
+#───────────────────────────────────────────────────────────────────────────────
+# Versioning
+#
+# The version is derived from git history, not from a file anyone edits, so
+# nothing can be forgotten or disagree. GitVersion is used rather than a
+# language-specific tool because it reads commits and tags only: the same
+# config works for .NET, Node, Python, or anything else.
+#───────────────────────────────────────────────────────────────────────────────
+
+# A single main branch, short-lived branches merged into it, and tags on main
+# marking releases. No GitFlow: no develop, release, or hotfix branches.
+workflow: GitHubFlow/v1
+
+# Every commit produces a version, so any build can be identified exactly.
+mode: ContinuousDeployment
+
+#───────────────────────────────────────────────────────────────────────────────
+# Starting point, and forcing a version
+#
+# next-version is a PIN, not a floor. While it sits above every existing tag,
+# it is the answer and the increments below are ignored - a repo full of
+# 'feat:' commits still reports this exact number. As soon as a tag reaches
+# it, it goes inert and normal incrementing resumes.
+#
+# That makes it right for exactly two jobs:
+#
+#   1. Seeding a repo that has no tags yet, which is what this value is.
+#   2. Declaring that the next release is a specific number. Raise it, cut the
+#      release, and it goes inert again on its own.
+#
+# It is the wrong tool for a routine bump - 'feat:' and 'feat!:' already do
+# that, per commit, recorded in the history. Raise this and forget, and every
+# commit in between reports the same version.
+#───────────────────────────────────────────────────────────────────────────────
+
+next-version: 0.0.1
+
+#───────────────────────────────────────────────────────────────────────────────
+# Conventional Commits
+#
+# The commit type decides the bump, so the version is a consequence of what
+# was written in the message. GitVersion applies the HIGHEST bump found since
+# the last tag - not one per commit - which is what SemVer asks for.
+#
+# Each pattern also keeps GitVersion's own '+semver:' directive alive.
+# Overriding these regexes replaces the built-in patterns rather than adding
+# to them, so leaving it out would silently remove the escape hatch for a
+# commit whose type does not imply the bump it needs.
+#
+# Keep these in step with docs/ConventionalCommits.md.
+#───────────────────────────────────────────────────────────────────────────────
+
+commit-message-incrementing: Enabled
+
+# A '!' before the colon, or a 'BREAKING CHANGE' footer.
+major-version-bump-message: '^\s*\w+(\([^)]*\))?!\s*:|^BREAKING[ -]CHANGE|\nBREAKING[ -]CHANGE|\+semver:\s?(breaking|major)'
+
+# Only a new feature earns a minor bump.
+minor-version-bump-message: '^\s*feat(\([^)]*\))?\s*:|\+semver:\s?(feature|minor)'
+
+# Everything else is a patch, including the custom 'infra' type.
+patch-version-bump-message: '^\s*(build|chore|ci|docs|fix|infra|perf|refactor|revert|style|test)(\([^)]*\))?\s*:|\+semver:\s?(fix|patch)'
+
+# '+semver: none' stops a commit from escalating the bump - a 'feat:' marked
+# this way will not force a minor. It does not freeze the version: main still
+# carries a default patch increment, so every commit past a tag still gets its
+# own number. That is deliberate, because two commits sharing a version makes
+# a build artifact ambiguous.
+no-bump-message: '\+semver:\s?(none|skip)'
+
+#───────────────────────────────────────────────────────────────────────────────
+# Branch overrides
+#
+# A merge commit's message describes the merge, not the change, so it must
+# never drive the version. This has to be set per branch type.
+#───────────────────────────────────────────────────────────────────────────────
+
+branches:
+  main:
+    track-merge-message: false
+  feature:
+    track-merge-message: false
+  pull-request:
+    track-merge-message: false
+  unknown:
+    track-merge-message: false
