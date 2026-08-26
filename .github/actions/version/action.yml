@@ -1,0 +1,50 @@
+# yaml-language-server: $schema=https://json.schemastore.org/github-action.json
+
+# One definition of "what version is this commit", used by every workflow that
+# needs one. A composite action rather than a reusable workflow, because a
+# reusable workflow costs a whole extra runner job just to hand back a string.
+#
+# GitVersion reads git history and GitVersion.yml only, so this action is not
+# specific to any language. The caller must have checked out with
+# fetch-depth: 0 - GitVersion needs the full history and all the tags to work
+# out where the last release was.
+
+name: Version
+description: Calculates the SemVer version for the current commit.
+
+outputs:
+  semVer:
+    description: The version, e.g. 1.4.0
+    value: ${{ steps.gitversion.outputs.semVer }}
+  majorMinorPatch:
+    description: The version without any pre-release label, e.g. 1.4.0
+    value: ${{ steps.gitversion.outputs.majorMinorPatch }}
+  fullSemVer:
+    description: The version including branch and build metadata
+    value: ${{ steps.gitversion.outputs.fullSemVer }}
+  tag:
+    description: The git tag for this version, e.g. v1.4.0
+    value: v${{ steps.gitversion.outputs.semVer }}
+
+runs:
+  using: composite
+  steps:
+    - name: Install GitVersion
+      # Installs the tool as a dotnet global tool. Every GitHub-hosted runner
+      # already has the .NET SDK, so no setup-dotnet step is needed - which is
+      # what keeps this usable from a repo that has nothing to do with .NET.
+      uses: gittools/actions/gitversion/setup@v4.0.1
+      with:
+        versionSpec: "6.x"
+
+    - name: Calculate version
+      id: gitversion
+      uses: gittools/actions/gitversion/execute@v4.0.1
+      with:
+        useConfigFile: true
+
+    - name: Report version
+      shell: bash
+      run: |
+        echo "### Version \`${{ steps.gitversion.outputs.semVer }}\`" \
+          >> "$GITHUB_STEP_SUMMARY"
