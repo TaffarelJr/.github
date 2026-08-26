@@ -1,0 +1,59 @@
+#───────────────────────────────────────────────────────────────────────────────
+# EditorConfig: https://EditorConfig.org
+# Remove the line below if you want to
+# inherit .editorconfig settings from higher directories
+#───────────────────────────────────────────────────────────────────────────────
+
+root = true
+
+#───────────────────────────────────────────────────────────────────────────────
+# Default Settings for all files
+#───────────────────────────────────────────────────────────────────────────────
+
+[*]
+charset = utf-8
+indent_style = space
+indent_size = 4
+tab_width = 4
+max_line_length = 120
+trim_trailing_whitespace = true
+insert_final_newline = true
+
+#───────────────────────────────────────────────────────────────────────────────
+# Vertical rulers
+#───────────────────────────────────────────────────────────────────────────────
+
+guidelines = 80 1px solid 5000ff00, 100 1px solid 75ffff00, 120 1px solid ff8b0000
+
+#───────────────────────────────────────────────────────────────────────────────
+# Overrides for specific file types
+#───────────────────────────────────────────────────────────────────────────────
+
+# Required by file format (Unix-centric)
+[*.{bash,fish,ksh,sh,zsh}]
+end_of_line = lf
+
+# Required by file format (Vim-centric)
+[{*.vim,.gvimrc,.vimrc}]
+end_of_line = lf
+
+# Required by file format (Windows-centric)
+[*.{bat,cdxml,cmd,ps1,ps1x,ps1xml,psd1,psm1,psrc,pssc}]
+end_of_line = crlf
+
+# Industry standard
+[*.{markdown,md,mdx}]
+trim_trailing_whitespace = false
+indent_size = 2
+tab_width = 2
+
+# Industry standard
+[*.{toml,yaml,yml}]
+indent_style = space
+indent_size = 2
+tab_width = 2
+
+# Looks better
+[*.{code-workspace,json,svg,xml}]
+indent_size = 2
+tab_width = 2
