@@ -1,0 +1,42 @@
+# yaml-language-server: $schema=https://json.schemastore.org/github-workflow.json
+
+# Checks codecov.yml against Codecov's own validator.
+#
+# Codecov silently falls back to its defaults when codecov.yml does not parse,
+# so a typo does not fail anything - it just quietly stops enforcing the
+# thresholds. The pull request that changes the file is the only moment the
+# mistake is cheap to fix.
+#
+# This file is a shell: the triggers are this repo's, and the steps live in the
+# shared action. A workflow's triggers cannot be inherited from elsewhere,
+# which is why the shell has to be local even though the work is not.
+#
+# It holds no per-repo values, so it stays identical at every layer and a
+# parent's edit to it always applies cleanly.
+
+name: Validate Codecov
+
+on:
+  pull_request:
+    paths:
+      - .github/codecov.yml
+
+  # Can be triggered manually
+  workflow_dispatch:
+
+jobs:
+  validate:
+    name: Validate codecov.yml
+    runs-on: ubuntu-latest
+
+    permissions:
+      contents: read # Needed to check out the repo
+
+    steps:
+      - name: Checkout repo
+        uses: actions/checkout@v7
+        with:
+          fetch-depth: 1 # Only the file itself is needed
+
+      - name: Validate the Codecov configuration
+        uses: TaffarelJr/.actions/validate-codecov@v1
