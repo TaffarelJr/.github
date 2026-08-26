@@ -1,0 +1,52 @@
+# yaml-language-server: $schema=https://json.schemastore.org/github-workflow.json
+
+# Codecov silently falls back to its defaults when codecov.yml does not parse,
+# so a typo does not fail anything - it just quietly stops enforcing the
+# thresholds. This checks the file against Codecov's own validator, on the PR
+# that changes it, which is the only moment the mistake is cheap to fix.
+
+name: Validate Codecov
+
+on:
+  pull_request:
+    paths:
+      - .github/codecov.yml
+  workflow_dispatch:
+
+defaults:
+  run:
+    shell: bash
+
+jobs:
+  validate:
+    name: Validate codecov.yml
+    runs-on: ubuntu-latest
+
+    permissions:
+      contents: read # Needed to check out the repo
+
+    steps:
+      - name: Checkout repo
+        uses: actions/checkout@v7
+        with:
+          fetch-depth: 1 # Only the file itself is needed
+
+      - name: Validate codecov.yml
+        run: |
+          # curl -f makes an HTTP error an exit code; without it the validator's
+          # rejection message is printed and the step still passes. $? has to
+          # be read on the line after the assignment, or it reports on the
+          # assignment instead of curl.
+          output=$(curl -f -s --data-binary @.github/codecov.yml \
+            https://codecov.io/validate)
+          status=$?
+
+          echo "$output"
+          echo
+
+          if [ $status -ne 0 ]; then
+            echo "::error file=.github/codecov.yml::codecov.yml is not valid"
+            exit 1
+          fi
+
+          echo "✅ codecov.yml is valid"

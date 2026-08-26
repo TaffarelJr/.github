@@ -1,0 +1,151 @@
+# yaml-language-server: $schema=https://json.schemastore.org/codecov.json
+
+#───────────────────────────────────────────────────────────────────────────────
+# Coverage reporting
+#
+# This file cannot be appended to the way .gitignore and dependabot.yml can -
+# it is nested YAML, and Codecov has no include or extends mechanism. So each
+# layer edits specific keys instead:
+#
+#   .github          this file: the thresholds, the comment, the checks
+#   each layer       adds 'ignore' entries, 'flags', and 'components'
+#
+# When template sync conflicts here, keep the incoming thresholds and re-apply
+# the local flags and components.
+#───────────────────────────────────────────────────────────────────────────────
+
+codecov:
+  require_ci_to_pass: true
+  notify:
+    wait_for_ci: true
+    notify_error: true # Say so in the PR when an upload failed
+
+#───────────────────────────────────────────────────────────────────────────────
+# Status checks
+#───────────────────────────────────────────────────────────────────────────────
+
+coverage:
+  precision: 2
+  round: down
+  range: "90...95" # Red below 90, green above 95
+
+  status:
+    # Coverage across the whole repo, compared against the base commit.
+    project:
+      default:
+        target: auto # Do not drop below where we already are
+        threshold: 1% # But do not fail over rounding noise
+        # A new repo, or a PR from before coverage was ever uploaded, has no
+        # base to compare against. Failing then blocks the very first PR for
+        # no useful reason.
+        if_not_found: success
+        if_ci_failed: error
+
+    # Coverage of only the lines this PR touched. This is the one that
+    # matters: it holds new code to a standard without demanding that old
+    # code be back-filled first.
+    patch:
+      default:
+        target: 95%
+        threshold: 2%
+        if_not_found: success
+        if_ci_failed: error
+
+    # The 'changes' status is deliberately absent. It has to be enabled by
+    # declaring it, so leaving it out is how it stays off - and it would only
+    # repeat what project and patch already said.
+
+#───────────────────────────────────────────────────────────────────────────────
+# Ignored paths
+#
+# Coverage of the test suite itself, or of build tooling, is not information.
+# Each layer appends the paths its own toolchain generates.
+#───────────────────────────────────────────────────────────────────────────────
+
+# A leading '**/' compiles to a regex that requires a path segment before the
+# match, so '**/test/**' alone would miss a top-level test/ directory. Both
+# forms are listed on purpose.
+ignore:
+  - "test/**"
+  - "tests/**"
+  - "**/test/**"
+  - "**/tests/**"
+  - "build/**"
+  - "scripts/**"
+  - "docs/**"
+
+#───────────────────────────────────────────────────────────────────────────────
+# Flags
+#
+# A flag is one dimension a suite can be split along - a target framework, a
+# platform, a package in a monorepo - so each can be tracked and required
+# separately. Uploads carry the flag; this section says how to treat it.
+#
+# carryforward matters for a matrix build: if a job did not run on this commit,
+# reuse its last known result instead of reporting a coverage drop that did
+# not happen. Setting it in default_rules means it applies to any flag a
+# layer introduces, without that layer having to remember.
+#
+# A layer that actually splits its suite declares the flags explicitly, and
+# must also set codecov.notify.after_n_builds to the number of uploads, so the
+# PR comment waits for all of them instead of commenting on the first:
+#
+#   flag_management:
+#     individual_flags:
+#       - name: net8.0
+#         paths: [src/**]
+#         carryforward: true
+#       - name: net9.0
+#         paths: [src/**]
+#         carryforward: true
+#───────────────────────────────────────────────────────────────────────────────
+
+flag_management:
+  default_rules:
+    carryforward: true
+
+#───────────────────────────────────────────────────────────────────────────────
+# Components
+#
+# A component is a slice of the repo tracked as its own coverage figure -
+# usually one per shippable project. This layer has no projects, so it
+# declares none; a layer that adds projects adds a component per project:
+#
+#   component_management:
+#     individual_components:
+#       - component_id: my-library    # kebab-case, must never change
+#         name: My.Library            # display name, safe to change
+#         paths: [src/My.Library/**]
+#───────────────────────────────────────────────────────────────────────────────
+
+#───────────────────────────────────────────────────────────────────────────────
+# Pull request comment and checks
+#
+# EVERY layout section is switched on deliberately, to see what each one
+# actually renders - the docs show almost no examples. Once the useful ones are
+# known, cut this back; a comment nobody reads is worse than no comment.
+#
+#   header / condensed_header       the coverage delta summary
+#   diff                           coverage of just this PR's changes
+#   flags                           per-flag table
+#   components                      per-component table
+#   files / condensed_files         per-file table
+#   reach                           call-graph reach diagram
+#   sunburst                        coverage sunburst graph
+#   footer / condensed_footer       links back to Codecov
+#
+# The condensed_* variants replace their full counterparts rather than adding
+# to them, so a final layout should pick one of each pair, not both.
+#───────────────────────────────────────────────────────────────────────────────
+
+comment:
+  layout: header, diff, flags, components, files, reach, sunburst, footer
+  behavior: default
+  require_changes: false
+  require_base: false
+  require_head: false
+  hide_project_coverage: false
+
+github_checks:
+  # Inline annotations on uncovered lines in the diff view.
+  annotations: true
