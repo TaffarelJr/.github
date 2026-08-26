@@ -324,6 +324,11 @@ Invoke-GatedCommit -RepoPath $targetPath `
         -OldOwnerRepo $ctx.SourceOwnerRepo `
         -NewOwnerRepo $ownerRepo
     Update-ReadmeDiagram -RepoPath $targetPath
+    # A code repo's README is replaced wholesale in step 4, so retitling it
+    # would only be undone.
+    if ($Kind -ne 'Code') {
+        Set-ReadmeTitle -RepoPath $targetPath -RepoName $repo
+    }
 }
 
 #───────────────────────────────────────────────────────────────────────────────
