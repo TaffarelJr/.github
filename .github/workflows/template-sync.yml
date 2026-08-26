@@ -1,0 +1,65 @@
+# yaml-language-server: $schema=https://json.schemastore.org/github-workflow.json
+
+# Brings the parent template's changes down as a pull request.
+#
+# This file is a shell: the triggers are this repo's, and the steps live in the
+# shared action. A workflow's triggers cannot be inherited from elsewhere,
+# which is why the shell has to be local even though the work is not.
+#
+# It holds no per-repo values, so it stays identical at every layer and a
+# parent's edit to it always applies cleanly. Which parent to sync from, and
+# how, are repo variables set when the repo is scaffolded:
+#
+#   TEMPLATE_REPO_URL        the immediate parent's clone URL
+#   TEMPLATE_SYNC_STRATEGY   'rebase' for a template layer, 'merge' for a leaf
+#
+# A base template has no parent, so it sets neither variable and every run is
+# a no-op that says as much. A URL that IS set but points at this repo is a
+# misconfiguration, and fails loudly.
+
+name: Template Sync
+
+on:
+  # Runs nightly, deliberately off the hour:
+  # runs scheduled on the hour queue behind everyone else's
+  # (https://crontab.guru/#17_4_*_*_*)
+  schedule:
+    - cron: "17 4 * * *"
+
+  # Can be triggered manually
+  workflow_dispatch:
+
+# One sync at a time. A second run would fight the first over the branch.
+concurrency:
+  group: template-sync
+  cancel-in-progress: false
+
+jobs:
+  template-sync:
+    name: Sync with Template Repo
+    runs-on: ubuntu-latest
+
+    permissions:
+      contents: write # Needed to push the sync branch
+      pull-requests: write # Needed to create PRs
+
+    # A PAT lets the sync PR trigger CI. The default token cannot: pull
+    # requests it opens never fire pull_request workflows, so a required status
+    # check would never report and the PR could never be merged.
+    # Declared here rather than at workflow level, where secrets are not in scope.
+    env:
+      SYNC_TOKEN: ${{ secrets.TEMPLATE_SYNC_PAT || secrets.GITHUB_TOKEN }}
+
+    steps:
+      - name: Checkout repo
+        uses: actions/checkout@v7
+        with:
+          fetch-depth: 0 # Needed for merging and rebasing
+          token: ${{ env.SYNC_TOKEN }}
+
+      - name: Sync from the parent template
+        uses: TaffarelJr/.actions/template-sync@v1
+        with:
+          template-url: ${{ vars.TEMPLATE_REPO_URL }}
+          strategy: ${{ vars.TEMPLATE_SYNC_STRATEGY }}
+          token: ${{ env.SYNC_TOKEN }}
