@@ -348,12 +348,19 @@ Invoke-GatedCommit -RepoPath $targetPath `
 #───────────────────────────────────────────────────────────────────────────────
 
 Write-Step '7' 'Apply template-specific customizations'
+# Carries the repo metadata as well as its identity, because a layer often has
+# somewhere of its own to put it - a NuGet layer writes the description and
+# topics into the package, for instance.
 Invoke-LayerModule -RepoPath $targetPath -Context @{
     RepoPath        = $targetPath
     RepoName        = $repo
     Kind            = $Kind
     OwnerRepo       = $ownerRepo
     SourceOwnerRepo = $ctx.SourceOwnerRepo
+    Description     = $Description
+    Homepage        = $Homepage
+    Topics          = $Topics
+    Visibility      = $Visibility
 }
 
 #───────────────────────────────────────────────────────────────────────────────
