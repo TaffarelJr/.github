@@ -131,9 +131,9 @@ line:
 ```markdown
 <!-- Source Code URIs (folders first, then files; each alphabetical) -->
 
-<!-- GitHub URIs (alphabetical by name) -->
+<!-- GitHub URIs (alphabetical) -->
 
-<!-- Public URIs (alphabetical by name) -->
+<!-- Public URIs (alphabetical) -->
 ```
 
 - **Source Code** — paths inside the repo. Sorted the way an editor's explorer
