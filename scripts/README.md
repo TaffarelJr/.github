@@ -156,7 +156,7 @@ never leak between files. `Common-Git` is the slow one: it drives real
 The [Test Scripts][testWorkflow] workflow runs the same suite on Ubuntu and
 Windows for every pull request that touches `scripts/`.
 
-<!-- Source Code URIs (alphabetical by file hierarchy) -->
+<!-- Source Code URIs (folders first, then files; each alphabetical) -->
 
 [testWorkflow]: ../.github/workflows/test-scripts.yml
 [chainFile]: ../docs/TemplateChain.md

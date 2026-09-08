@@ -205,14 +205,14 @@ workflow below is a thin trigger that calls one.
 [securityFile]: ./SECURITY.md
 [supportFile]: ./SUPPORT.md
 
-<!-- GitHub Repo URIs (alphabetical by name) -->
+<!-- GitHub Repo URIs (alphabetical) -->
 
 [actionsRepo]: https://github.com/TaffarelJr/.actions
 [ghGitAttributes]: https://github.com/gitattributes/gitattributes
 [ghGitIgnore]: https://github.com/github/gitignore
 [ghSettings]: https://github.com/repository-settings/app
 
-<!-- Public URIs (alphabetical by name) -->
+<!-- Public URIs (alphabetical) -->
 
 [codecovDocs]: https://docs.codecov.com/docs/codecovyml-reference
 [freeCodeCamp]: https://www.freecodecamp.org/news/how-to-use-the-dot-github-repository
