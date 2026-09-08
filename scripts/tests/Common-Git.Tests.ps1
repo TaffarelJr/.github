@@ -21,16 +21,23 @@ function New-Lab {
     Remove-TestFolder -Path $bare
     git init -q --bare $bare
     git init -q -b main $lab
-    $settings = @(
-        @('user.name', 'Lab')
-        @('user.email', 'lab@example.com')
-        @('commit.gpgsign', 'false')
-        @('core.autocrlf', 'false')
-        @('core.safecrlf', 'false')
-    )
+    # A hashtable, not an array of pairs: a multi-line @() flattens each
+    # line's own @('key', 'value') into the outer array instead of nesting
+    # it, so $setting[0]/$setting[1] silently indexed into characters of
+    # a lone string - every one of these five configs was a no-op. Never
+    # caught locally because a developer machine already has a global
+    # git identity; a CI runner has none, so the later commit throws.
+    $settings = [ordered]@{
+        'user.name'      = 'Lab'
+        'user.email'     = 'lab@example.com'
+        'commit.gpgsign' = 'false'
+        'core.autocrlf'  = 'false'
+        'core.safecrlf'  = 'false'
+    }
 
-    foreach ($setting in $settings) {
-        git -C $lab config $setting[0] $setting[1]
+    foreach ($key in $settings.Keys) {
+        git -C $lab config $key $settings[$key]
+        if ($LASTEXITCODE -ne 0) { throw "git config $key failed (exit $LASTEXITCODE)" }
     }
 
     Write-LabFile -Part 'README.md' -Text 'original'
