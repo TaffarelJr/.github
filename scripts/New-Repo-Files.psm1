@@ -301,7 +301,7 @@ function Get-ProjectReadme {
         ''
         $licence
         ''
-        '<!-- Source Code URIs (alphabetical by file hierarchy) -->'
+        '<!-- Source Code URIs (folders first, then files; each alphabetical) -->'
         ''
         '[cocFile]: ./CODE_OF_CONDUCT.md'
         '[contribFile]: ./CONTRIBUTING.md'
