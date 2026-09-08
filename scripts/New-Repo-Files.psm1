@@ -19,7 +19,9 @@ $ErrorActionPreference = 'Stop'
 #───────────────────────────────────────────────────────────────────────────────
 
 # The section rule and plugin doc link that every settings.yml block repeats.
+# Indented under 'repository:'; SettingsRuleTop is for a top-level key.
 $script:SettingsRule = '  #' + ('─' * 77)
+$script:SettingsRuleTop = '#' + ('─' * 79)
 $script:SettingsPluginDoc = '  # https://github.com/repository-settings/app' +
     '/blob/master/docs/plugins/repository.md'
 
@@ -546,8 +548,9 @@ function Get-SettingsAboutBlock {
     .SYNOPSIS
         Returns the "About" lines: description, homepage, topics.
     .DESCRIPTION
-        Not exported. An absent homepage is written as a comment rather than
-        omitted, so the key is visible and easy to fill in later.
+        Not exported. homepage is always written explicitly, even blank -
+        _extends resolves recursively, so leaving the key out would inherit
+        the parent's homepage instead of this repo having none.
     #>
     param(
         [Parameter(Mandatory)][string]$Description,
@@ -568,10 +571,8 @@ function Get-SettingsAboutBlock {
         "  description: $Description"
         ''
         '  # A URL with more information about the repo'
+        $(if ($Homepage) { "  homepage: $Homepage" } else { '  homepage: ""' })
     ))
-
-    if ($Homepage) { $lines.Add("  homepage: $Homepage") }
-    else { $lines.Add('  # homepage: (none)') }
 
     $lines.AddRange([string[]]@(
         ''
@@ -601,7 +602,7 @@ function Get-SettingsGeneralBlock {
     $lines.AddRange([string[]]@(
         ''
         $script:SettingsRule
-        '  # Settings -> General'
+        '  # Settings → General'
         $script:SettingsPluginDoc
         '  # https://docs.github.com/en/rest/repos/repos#update-a-repository'
         $script:SettingsRule
@@ -625,28 +626,28 @@ function Get-SettingsLeafBlock {
     .DESCRIPTION
         Not exported. Nothing else in the chain differs by Kind, which is why
         this is one block rather than conditionals sprinkled through the file.
+        Only keys that actually differ from the parent's are here, each
+        keeping the parent's own comment - a value equal to the inherited one
+        is not an override, and restating it risks drifting from the parent
+        without anyone noticing.
     #>
     return @(
         ''
-        '  # Code repo: not a template (override the inherited value)'
+        '  # Whether the repo is available as a template'
         '  is_template: false'
         ''
-        $script:SettingsRule
-        '  # Settings -> General -> Pull Requests'
-        $script:SettingsRule
-        ''
-        '  # Template layers rebase-merge so their history stays linear'
-        '  # and no merge commits propagate downstream. Nothing is'
-        '  # derived from a code repo, so its merge commits reach nobody'
-        '  # else: rewrite history in a PR, then merge it as-is.'
+        '  # Whether to allow merging pull requests with a merge commit'
         '  allow_merge_commit: true'
-        '  allow_squash_merge: false'
+        ''
+        '  # Whether to allow rebase-merging pull requests'
         '  allow_rebase_merge: false'
         ''
-        $script:SettingsRule
-        '  # Settings -> Rules -> Rulesets'
-        $script:SettingsRule
-        ''
+        $script:SettingsRuleTop
+        '# Settings → Rules → Rulesets'
+        '# https://github.com/repository-settings/app/blob/master/docs/plugins/rulesets.md'
+        '# https://docs.github.com/en/rest/repos/rules#update-a-repository-ruleset'
+        '# https://github.com/github/ruleset-recipes'
+        $script:SettingsRuleTop
         'rulesets:'
         '  # Only template layers need linear history. Inheritance is'
         '  # additive, so this can be switched off here but never removed.'

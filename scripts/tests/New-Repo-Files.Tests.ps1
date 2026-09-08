@@ -92,8 +92,8 @@ foreach ($case in @(
             ($text -match '(?m)^  homepage: https://example\.org$')
     }
     else {
-        Assert-That "${name}: absent homepage stays a comment" `
-            ($text -match '(?m)^  # homepage: \(none\)$')
+        Assert-That "${name}: absent homepage is written explicitly blank" `
+            ($text -match '(?m)^  homepage: ""$')
     }
 
     $wantPrivate = $case.Vis -eq 'Private'
