@@ -153,10 +153,10 @@ Each `*.Tests.ps1` runs in its own PowerShell process on the shared
 never leak between files. `Common-Git` is the slow one: it drives real
 `git` repos, because nothing else can vouch for what git does.
 
-The [Test Scripts][testWorkflow] workflow runs the same suite on Ubuntu and
-Windows for every pull request that touches `scripts/`.
+The [Continuous Integration][ciWorkflow] workflow runs the same suite on
+Ubuntu and Windows for every pull request that touches `scripts/`.
 
 <!-- Source Code URIs (folders first, then files; each alphabetical) -->
 
-[testWorkflow]: ../.github/workflows/test-scripts.yml
+[ciWorkflow]: ../.github/workflows/continuous-integration.yml
 [chainFile]: ../docs/TemplateChain.md

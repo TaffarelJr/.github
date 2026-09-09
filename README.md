@@ -136,14 +136,14 @@ workflow below is a thin trigger that calls one.
 
 ### [GitHub Workflows][ghWorkflows]
 
-| Workflow                                                                         | Description                                                          |
-| :------------------------------------------------------------------------------- | :------------------------------------------------------------------- |
-| 📁[.github/][githubFolder]                                                        |                                                                      |
-| &nbsp;└─📁[workflows/][workflowFolder]                                            |                                                                      |
-| &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;├─📄[Create Release][createWorkflow]    | Entry point for [cutting a release][releaseFile], via [TaffarelJr/.actions][actionsRepo] |
-| &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;├─📄[Template Sync][syncWorkflow]       | Brings changes from a template repo, via [TaffarelJr/.actions][actionsRepo]              |
-| &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;├─📄[Test Scripts][testWorkflow]        | Runs the [scaffolding scripts'][scriptsFile] tests on both platforms                     |
-| &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;└─📄[Validate Codecov][codecovWorkflow] | Checks `codecov.yml` against Codecov's validator, via [TaffarelJr/.actions][actionsRepo] |
+| Workflow                                                                           | Description                                                                              |
+| :---------------------------------------------------------------------------------- | :---------------------------------------------------------------------------------------- |
+| 📁[.github/][githubFolder]                                                         |                                                                                           |
+| &nbsp;└─📁[workflows/][workflowFolder]                                             |                                                                                           |
+| &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;├─📄[Continuous Integration][ciWorkflow] | Runs the [scaffolding scripts'][scriptsFile] tests on both platforms                     |
+| &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;├─📄[Create Release][createWorkflow]     | Entry point for [cutting a release][releaseFile], via [TaffarelJr/.actions][actionsRepo] |
+| &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;├─📄[Template Sync][syncWorkflow]        | Brings changes from a template repo, via [TaffarelJr/.actions][actionsRepo]              |
+| &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;└─📄[Validate Codecov][codecovWorkflow]  | Checks `codecov.yml` against Codecov's validator, via [TaffarelJr/.actions][actionsRepo] |
 
 ### Other Files
 
@@ -172,9 +172,9 @@ workflow below is a thin trigger that calls one.
 [issueFormsFolder]: ./.github/ISSUE_TEMPLATE/
 [issueChooserFile]: ./.github/ISSUE_TEMPLATE/config.yml
 [workflowFolder]: ./.github/workflows/
+[ciWorkflow]: ./.github/workflows/continuous-integration.yml
 [createWorkflow]: ./.github/workflows/create-release.yml
 [syncWorkflow]: ./.github/workflows/template-sync.yml
-[testWorkflow]: ./.github/workflows/test-scripts.yml
 [codecovWorkflow]: ./.github/workflows/validate-codecov.yml
 [codeOwnFile]: ./.github/CODEOWNERS
 [codecovFile]: ./.github/codecov.yml

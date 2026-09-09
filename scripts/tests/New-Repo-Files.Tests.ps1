@@ -273,7 +273,7 @@ Write-TestSection '9. Remove-ScriptsFolder'
 # Arrange
 $repo = New-Repo -Name 'scripts-repo'
 Write-RepoFile -Repo $repo -Relative 'scripts/x.psm1' -Text 'x'
-Write-RepoFile -Repo $repo -Relative '.github/workflows/test-scripts.yml' -Text 'y'
+Write-RepoFile -Repo $repo -Relative '.github/workflows/continuous-integration.yml' -Text 'y'
 $before = Get-ChangeCount
 
 # Act
@@ -282,7 +282,7 @@ Remove-ScriptsFolder -RepoPath $repo 6>$null
 # Assert
 Assert-That 'scripts/ is gone' (-not (Test-Path (Join-Path $repo 'scripts')))
 Assert-That 'and its CI workflow too' `
-    (-not (Test-Path (Join-Path $repo '.github/workflows/test-scripts.yml')))
+    (-not (Test-Path (Join-Path $repo '.github/workflows/continuous-integration.yml')))
 Assert-That 'and it records a change' ((Get-ChangeCount) -gt $before)
 
 # Arrange

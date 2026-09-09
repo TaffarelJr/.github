@@ -1,24 +1,14 @@
 # yaml-language-server: $schema=https://json.schemastore.org/github-workflow.json
 
 # The entry point for cutting a release: Actions -> Create Release -> Run.
+# See docs/ReleaseProcess.md for why this is the only way in and why a
+# release is a deliberate decision, not something every merge does.
 #
-# There is exactly one way in, on purpose. Pushing a tag looks like it should
-# work too, but the version is stamped into the binaries when CI builds them,
-# so a tag could only ever name the version that was already built - and if it
-# named a different one, the release would have to either lie or rebuild. To
-# choose a version, raise next-version in GitVersion.yml and let CI build it.
+# Nothing is rebuilt here - it just triggers; draft-release takes the
+# artifacts CI already produced for the same commit.
 #
-# A release happens when a human decides one should, not on every merge to
-# main. Merges are continuously verified by CI; that is a different question
-# from "these changes are worth a version number".
-#
-# Nothing is rebuilt. This file only triggers; the shared release workflow
-# takes the artifacts CI already produced for the same commit.
-#
-# The ref below is pinned to a major version and cannot be an expression -
-# GitHub does not allow ${{ }} in 'uses'. So moving to a new major version is
-# an edit here that travels down the template chain as a reviewed change,
-# which is the intended way for it to propagate.
+# 'uses' can't take an expression, so bumping the major version is an edit
+# here that flows down the template chain like any other change.
 
 name: Create Release
 
@@ -33,9 +23,19 @@ concurrency:
 jobs:
   release:
     name: Draft Release
+    runs-on: ubuntu-latest
+
     permissions:
-      contents: write # Needed by the reusable workflow
-      actions: read # Needed by the reusable workflow
-    uses: TaffarelJr/.actions/.github/workflows/reusable-release.yml@v1
-    secrets:
-      copilot-pat: ${{ secrets.COPILOT_PAT }}
+      contents: write # Needed to create the release
+      actions: read # Needed to read artifacts from the CI run
+
+    steps:
+      - name: Checkout repo
+        uses: actions/checkout@v7
+        with:
+          fetch-depth: 0 # The changelog needs all the history and tags
+
+      - name: Draft the release
+        uses: TaffarelJr/.actions/draft-release@v1
+        with:
+          copilot-pat: ${{ secrets.COPILOT_PAT }}

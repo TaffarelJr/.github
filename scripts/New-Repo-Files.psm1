@@ -83,7 +83,7 @@ function Remove-ScriptsFolder {
 
     Write-Doing 'Removing scripts/'
     $dir = Join-Path $RepoPath 'scripts'
-    $workflow = Join-Path $RepoPath '.github/workflows/test-scripts.yml'
+    $workflow = Join-Path $RepoPath '.github/workflows/continuous-integration.yml'
     if (-not (Test-Path $dir) -and -not (Test-Path $workflow)) {
         Write-Done -Skip 'already removed'
         return
