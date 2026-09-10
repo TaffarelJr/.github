@@ -5,7 +5,7 @@
 # release is a deliberate decision, not something every merge does.
 #
 # Nothing is rebuilt here - it just triggers; draft-release takes the
-# artifacts CI already produced for the same commit.
+# artifacts CI already produced, for this commit or for a named version.
 #
 # 'uses' can't take an expression, so bumping the major version is an edit
 # here that flows down the template chain like any other change.
@@ -14,6 +14,10 @@ name: Draft Release
 
 on:
   workflow_dispatch:
+    inputs:
+      version:
+        description: Release an earlier build instead of this commit's, e.g. 1.4.2 or v1.4.2
+        required: false
 
 # Two releases drafted at once would race over the same tag.
 concurrency:
@@ -38,4 +42,5 @@ jobs:
       - name: Draft the release
         uses: TaffarelJr/.actions/draft-release@v1
         with:
+          version: ${{ inputs.version }}
           copilot-pat: ${{ secrets.COPILOT_PAT }}

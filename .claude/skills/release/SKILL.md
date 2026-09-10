@@ -23,9 +23,10 @@ number or what bits.
 2. Work out the version the draft will carry: `gh release list --limit 5`
    for the last tag, `git log <last-tag>..origin/main --oneline` for what
    has landed since, and `docs/ReleaseProcess.md` for which commit types
-   bump what. If that is not the version wanted, stop — the fix is a commit
-   (`+semver:` in a body, or `next-version` in `GitVersion.yml`), and CI has
-   to build it before a release can carry it.
+   bump what. If that is not the version wanted, stop — either CI already
+   built the wanted one on `main`, in which case pass it as `version` below,
+   or the fix is a commit (`+semver:` in a body, or `next-version` in
+   `GitVersion.yml`), and CI has to build it before a release can carry it.
 3. If that version is already tagged, stop. It has been published, and the
    workflow refuses to replace it.
 
@@ -34,6 +35,10 @@ number or what bits.
 `gh workflow run draft-release.yml --ref main` — the same as `Actions` →
 `Draft Release` → `Run workflow` → `main` in the web UI. Find the run with
 `gh run list --workflow draft-release.yml --limit 1` and `gh run watch` it.
+
+To ship an earlier `main` build than the tip, add `-f version=<x.y.z>`; the
+workflow finds the CI run that built it, and refuses if that build's
+artifact is gone — nothing is rebuilt.
 
 Re-running replaces the draft for that version rather than adding a second,
 so a failed or wrong attempt costs nothing.
