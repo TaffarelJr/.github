@@ -58,7 +58,7 @@ flowchart TB
 
   subgraph subCut ["When you decide — manual"]
     direction LR
-    Trigger[Run 'Create Release']
+    Trigger[Run 'Draft Release']
     Trigger --> Locate[Find the CI run<br/>for this commit]
     Locate --> Reuse[Reuse its artifacts]
     Reuse --> Notes[Generate notes<br/>from the commits]
@@ -69,7 +69,7 @@ flowchart TB
     direction LR
     Review[Review & edit] --> Publish[Publish release]
     Publish --> Tag[Tag created]
-    Tag --> Ship[Packages published]
+    Tag --> Ship[Shipped by<br/>publish-release.yml]
   end
 
   Artifact -.->|"read, never rebuilt"| Locate
@@ -148,7 +148,7 @@ next-version: 2.0.0
 ```
 
 This is the manual release lever.
-Set it, let CI build, then run `Create Release`.
+Set it, let CI build, then run `Draft Release`.
 Once the release is published the tag catches up
 and `next-version` goes inert on its own,
 so there is nothing to remember to undo.
@@ -170,7 +170,7 @@ and a floor would simply be overtaken.
 
 ### 1. Draft
 
-`Actions` → `Create Release` → `Run workflow` → `main`.
+`Actions` → `Draft Release` → `Run workflow` → `main`.
 
 There is exactly one way in, on purpose.
 Pushing a tag looks like it ought to work too,
@@ -208,10 +208,10 @@ Press `Publish release`.
 Everything before it is reversible;
 this is the step that makes the version public.
 It creates the tag — which is what the *next* version is calculated from —
-and, in a repo that ships one, fires the publish workflow
-(`.template-nuget`'s `publish-packages.yml`, for example).
-`.github` and `.actions` publish nothing, so publishing a release there
-does nothing further.
+and fires the repo's `publish-release.yml`, if it has one.
+What that does is the repo's own business:
+`.actions` moves its `v1` alias tag, a package repo pushes to its feed.
+`.github` has none, so publishing a release here does nothing further.
 
 The tag itself is protected by the `Protect version tags` ruleset:
 once created, it cannot be deleted or force-moved, so a published release
@@ -289,22 +289,30 @@ so there is nothing to paste in.
 
 ## What Each Layer Owns
 
-**Nothing here is layer-specific.**
+**Almost nothing here is layer-specific.**
 
 Building once has a pleasant side effect:
 because the release workflow no longer builds anything,
 it needs no toolchain.
 So the whole apparatus — the version calculation, the changelog generation,
-and the release-drafting workflow — lives in the separate
-[`TaffarelJr/.actions`][actionsRepo] repo, and is shared by every consumer,
-`.github` included. This repo's own `create-release.yml` is a two-line
-shell: it triggers, and hands the `COPILOT_PAT` secret to the reusable
-workflow that does the work.
+and the release drafting — lives in the separate
+[`TaffarelJr/.actions`][actionsRepo] repo as composite actions,
+and is shared by every consumer, `.github` included.
+This repo's own `draft-release.yml` is a shell:
+it checks out the history and calls the `draft-release` action,
+and is identical in every repo in the chain.
 
-A layer contributes exactly one thing:
-the packing step in its own CI workflow,
-which produces the artifact a release later attaches.
-Everything above that works without modification.
+A layer contributes two things, both in its own workflows:
+
+- **The packing step** in `continuous-integration.yml`,
+  which produces the artifact — binaries plus a `version.txt` —
+  that a release later attaches.
+- **`publish-release.yml`**, on `release: published`,
+  which does whatever "publish" means for that repo:
+  push a package, move a floating tag, deploy a site.
+  A repo with nothing to do at that moment has no such file.
+
+Everything else works without modification.
 
 <!-- Source Code URIs (folders first, then files; each alphabetical) -->
 

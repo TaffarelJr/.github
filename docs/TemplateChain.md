@@ -183,7 +183,7 @@ so a file usually announces which one it is.
 ### Verbatim
 
 The shared machinery: the scaffolding scripts, the modules they share and
-their tests, the version and release workflows, and the version configuration
+their tests, the release workflow, and the version configuration
 itself. A per-layer edit to any of them conflicts on every future change,
 forever.
 
@@ -239,6 +239,10 @@ Resolve by taking the incoming structure and re-applying the local keys.
   each layer's own test files, so a template layer runs it verbatim.
   A leaf has no scripts: scaffolding deletes the workflow along with them,
   and the leaf writes its own — which is where its toolchain lives.
+- **The publish workflow — this layer.** What happens when a release is
+  published is the layer's own business, so a layer with something to do
+  at that moment carries its own `publish-release.yml`,
+  and one with nothing to do has none.
 - **The template sync workflow — the template.** It carries no per-repo
   value: which parent to sync from, and how, are repo variables.
   So it is identical at every layer, and cannot conflict.
