@@ -130,9 +130,9 @@ the file is inherited unchanged, free to customize by hand if you want to.
 | &nbsp;├─📄[pull_request_template.md][prTemplateFile]              |                                 |                                 | [GitHub Pull Request template][ghPRTemplate]    |
 | &nbsp;└─📄[settings.yml][settingsFile]                            |               N/A               |                ✅                | [Repo configuration][ghSettings]                |
 
-Shared composite actions and reusable workflows live in the separate
-[TaffarelJr/.actions][actionsRepo] repo, not under `.github/` here — every
-workflow below is a thin trigger that calls one.
+Shared composite actions live in the separate
+[TaffarelJr/.actions][actionsRepo] repo, not under `.github/` here — each
+workflow below marked *via* is a thin trigger that calls one.
 
 ### [GitHub Workflows][ghWorkflows]
 
@@ -141,7 +141,7 @@ workflow below is a thin trigger that calls one.
 | 📁[.github/][githubFolder]                                                         |                                                                                           |
 | &nbsp;└─📁[workflows/][workflowFolder]                                             |                                                                                           |
 | &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;├─📄[Continuous Integration][ciWorkflow] | Runs the [scaffolding scripts'][scriptsFile] tests on both platforms                     |
-| &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;├─📄[Create Release][createWorkflow]     | Entry point for [cutting a release][releaseFile], via [TaffarelJr/.actions][actionsRepo] |
+| &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;├─📄[Draft Release][draftWorkflow]       | Entry point for [cutting a release][releaseFile], via [TaffarelJr/.actions][actionsRepo] |
 | &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;├─📄[Template Sync][syncWorkflow]        | Brings changes from a template repo, via [TaffarelJr/.actions][actionsRepo]              |
 | &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;└─📄[Validate Codecov][codecovWorkflow]  | Checks `codecov.yml` against Codecov's validator, via [TaffarelJr/.actions][actionsRepo] |
 
@@ -173,7 +173,7 @@ workflow below is a thin trigger that calls one.
 [issueChooserFile]: ./.github/ISSUE_TEMPLATE/config.yml
 [workflowFolder]: ./.github/workflows/
 [ciWorkflow]: ./.github/workflows/continuous-integration.yml
-[createWorkflow]: ./.github/workflows/create-release.yml
+[draftWorkflow]: ./.github/workflows/draft-release.yml
 [syncWorkflow]: ./.github/workflows/template-sync.yml
 [codecovWorkflow]: ./.github/workflows/validate-codecov.yml
 [codeOwnFile]: ./.github/CODEOWNERS

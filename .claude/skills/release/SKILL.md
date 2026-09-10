@@ -1,7 +1,7 @@
 ---
 name: release
 description: >-
-  Cuts a release: confirms main is what should ship, runs the Create Release
+  Cuts a release: confirms main is what should ship, runs the Draft Release
   workflow, walks the draft through review, and publishes it only on explicit
   confirmation. Use when asked to release, ship, tag, or publish a version.
 when_to_use: >-
@@ -31,9 +31,9 @@ number or what bits.
 
 ## Draft
 
-`gh workflow run create-release.yml --ref main` — the same as `Actions` →
-`Create Release` → `Run workflow` → `main` in the web UI. Find the run with
-`gh run list --workflow create-release.yml --limit 1` and `gh run watch` it.
+`gh workflow run draft-release.yml --ref main` — the same as `Actions` →
+`Draft Release` → `Run workflow` → `main` in the web UI. Find the run with
+`gh run list --workflow draft-release.yml --limit 1` and `gh run watch` it.
 
 Re-running replaces the draft for that version rather than adding a second,
 so a failed or wrong attempt costs nothing.
@@ -58,8 +58,8 @@ else has happened.
 ## Publish
 
 Publishing is the deployment. It creates the tag, which is what the next
-version is calculated from, and in a repo that ships packages it fires the
-publish workflow. It cannot be undone: the tag is protected by ruleset and
+version is calculated from, and fires the repo's `publish-release.yml` if it
+has one. It cannot be undone: the tag is protected by ruleset and
 the published assets are immutable.
 
 Never publish without explicit confirmation in this conversation. Then

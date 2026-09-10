@@ -1,6 +1,6 @@
 # yaml-language-server: $schema=https://json.schemastore.org/github-workflow.json
 
-# The entry point for cutting a release: Actions -> Create Release -> Run.
+# The entry point for cutting a release: Actions -> Draft Release -> Run.
 # See docs/ReleaseProcess.md for why this is the only way in and why a
 # release is a deliberate decision, not something every merge does.
 #
@@ -10,7 +10,7 @@
 # 'uses' can't take an expression, so bumping the major version is an edit
 # here that flows down the template chain like any other change.
 
-name: Create Release
+name: Draft Release
 
 on:
   workflow_dispatch:
@@ -22,7 +22,7 @@ concurrency:
 
 jobs:
   release:
-    name: Draft Release
+    name: Draft from the CI run
     runs-on: ubuntu-latest
 
     permissions:
