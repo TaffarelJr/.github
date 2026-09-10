@@ -180,6 +180,15 @@ and if it named a different one the release would have to either lie or rebuild.
 To choose a version, [set `next-version`](#forcing-a-version)
 and let CI build it.
 
+By default the draft is for the build of the commit you ran it from —
+the tip of `main`.
+To ship an earlier build instead, give the optional `version` input
+(`1.4.2`, say): the workflow finds the CI run that produced that version
+and drafts from its artifacts.
+It is still a build CI already verified, never a rebuild —
+so if no run still holds that version's artifact, the workflow refuses
+rather than guessing.
+
 This produces a draft release
 with the notes generated and the CI artifacts attached.
 Re-running **replaces** the existing draft for that version
