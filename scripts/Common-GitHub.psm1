@@ -730,6 +730,70 @@ function Register-ManualGitHubSetting {
     )
 }
 
+function Get-ManualCiWorkflow {
+    <#
+    .SYNOPSIS
+        Returns which of continuous-integration.yml / publish-release.yml a
+        Code repo's template chain did not already provide, as checklist
+        items.
+    .DESCRIPTION
+        Not exported. Checking whether the file already exists, rather than
+        which layer is supposed to provide it, is what lets this stop
+        nagging the moment a publishing template layer starts writing a
+        working one of its own via its layer module - with nothing here to
+        update when that happens.
+    .PARAMETER RepoPath
+        The new repo's own root, checked after its layer module has run.
+    #>
+    param([Parameter(Mandatory)][string]$RepoPath)
+
+    $items = @()
+
+    $ciPath = Join-Path $RepoPath '.github/workflows/continuous-integration.yml'
+    if (-not (Test-Path -LiteralPath $ciPath)) {
+        $items += @{
+            Title = 'Add a Continuous Integration workflow'
+            Steps = @(
+                "Build and test this repo's own code."
+                "Produce a version.txt and upload a 'packages' artifact -"
+                "or whatever names draft-release's build-workflow/artifact-name."
+                'Via a short-lived branch and PR; rulesets require it.'
+            )
+        }
+    }
+
+    $publishPath = Join-Path $RepoPath '.github/workflows/publish-release.yml'
+    if (-not (Test-Path -LiteralPath $publishPath)) {
+        $items += @{
+            Title = 'Add a Publish Release workflow, if this repo publishes anything'
+            Steps = @(
+                "On 'release: published', do this repo's own publish step -"
+                'a feed push, an image push, move-version-aliases for floating tags.'
+                'Same PR route. Skip this if there is nothing to publish.'
+            )
+        }
+    }
+
+    return , $items
+}
+
+function Register-ManualCiWorkflow {
+    <#
+    .SYNOPSIS
+        Queues adding continuous-integration.yml / publish-release.yml, for
+        whichever of the two this repo's template chain did not already
+        provide.
+    .PARAMETER RepoPath
+        The new repo's own root, checked after its layer module has run.
+    #>
+    param([Parameter(Mandatory)][string]$RepoPath)
+
+    foreach ($item in (Get-ManualCiWorkflow -RepoPath $RepoPath)) {
+        Add-ManualItem -Category "Add this repo's own release workflows" `
+            -Title $item.Title -Steps $item.Steps
+    }
+}
+
 #───────────────────────────────────────────────────────────────────────────────
 # Code scanning
 #───────────────────────────────────────────────────────────────────────────────
@@ -965,6 +1029,7 @@ Export-ModuleMember -Function @(
     'Initialize-Topic'
     'Enable-ReleaseImmutability'
     'Register-ManualGitHubSetting'
+    'Register-ManualCiWorkflow'
     'Add-CodeqlLanguage'
     'Enable-Codeql'
 )

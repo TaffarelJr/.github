@@ -71,12 +71,16 @@ and resumes from it next time. A fully scaffolded repo is a no-op.
 8. Push, then enable CodeQL for every language the chain registered.
 9. Dispatch Template Sync and confirm it ran clean with no pull request.
 10. Write a `<repo>.code-workspace` holding the new repo and every layer of its
-    chain that is cloned locally, and open it in VS Code.
+    chain that is cloned locally, then open it in VS Code alongside a
+    `NEXT-STEPS.md` written to the new repo's own root — untracked, and safe
+    to delete once every box is checked.
 
-It then prints a **checklist** of the settings that have no API —
-per-push limits, code review limits, grouped security updates,
-and the dependency graph on a private repo —
-to do by hand in the web UI.
+That checklist holds the settings that have no API — per-push limits, code
+review limits, grouped security updates, and the dependency graph on a
+private repo — plus, for a code repo whose template chain left it with
+neither, adding its own `continuous-integration.yml` and, if it publishes
+anything, `publish-release.yml`. It also prints to the console, same as
+always.
 
 Scaffolding stops there. Repo-specific customizations are ordinary commits
 you make afterwards, on a branch, as a pull request — which the rulesets
