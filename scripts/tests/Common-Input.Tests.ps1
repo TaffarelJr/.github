@@ -11,6 +11,21 @@ $ErrorActionPreference = 'Stop'
 Import-Module (Join-Path $PSScriptRoot 'TestKit.psm1') -Force
 Import-ScriptModule 'Common-Console', 'Common-Input'
 
+# Set-PersistedEnvVar is the one call in this module that reaches the
+# machine's actual User-scope environment - overridden here so a test
+# records what it was asked to persist instead of writing there for real.
+# Assigning through the function: drive, not a bare 'function' statement,
+# is what makes the replacement stick in the module's own session state
+# rather than vanishing with the & scriptblock that installs it.
+$inputModule = Get-Module Common-Input
+$global:PersistCall = [System.Collections.Generic.List[string]]::new()
+& $inputModule {
+    ${function:Set-PersistedEnvVar} = {
+        param($Name, $Value)
+        $global:PersistCall.Add("$Name=$Value")
+    }
+}
+
 Write-TestSection '1. an environment value is announced, trimmed, and validated'
 # Arrange
 $env:RI_TEST = '  Public  '
@@ -145,12 +160,15 @@ Assert-Equal 'an empty answer falls back to -Default' -Expected 'Code' -Actual $
 Write-TestSection '9. secrets are raw: untrimmed, unvalidated, never echoed'
 # Arrange
 $env:RI_SECRET = 'from-env'
+$global:PersistCall.Clear()
 
 # Act
 $value = Resolve-Input -Name T -Prompt 'p' -Secret -EnvVar 'RI_SECRET'
 
 # Assert
 Assert-Equal 'a secret from the environment' -Expected 'from-env' -Actual $value
+Assert-That 'an already-set variable is never re-persisted' ($global:PersistCall.Count -eq 0) `
+($global:PersistCall -join ' | ')
 Remove-Item Env:RI_SECRET
 
 # Arrange
@@ -162,7 +180,48 @@ $value = Resolve-Input -Name T -Prompt 'p' -Secret
 # Assert
 Assert-Equal 'a secret from a prompt' -Expected 'typed-secret' -Actual $value
 
-Write-TestSection '10. a whitespace-only environment variable counts as unset'
+Write-TestSection '10. a prompted secret is persisted to -EnvVar at User scope'
+# Arrange
+$global:PersistCall.Clear()
+Set-ReadHostAnswer 'fresh-token'
+$noise = Get-Narration { $script:persisted = Resolve-Input -Name T -Prompt 'p' `
+        -Secret -EnvVar 'RI_PERSIST' }
+
+# Assert
+Assert-Equal 'still returns the typed value' -Expected 'fresh-token' -Actual $script:persisted
+Assert-Equal 'persisted the answer under -EnvVar''s name' -Expected 'RI_PERSIST=fresh-token' `
+    -Actual ($global:PersistCall -join ',')
+Assert-Equal 'and updates this process''s own copy too' -Expected 'fresh-token' `
+    -Actual $env:RI_PERSIST
+Assert-That 'confirms it on the console' ([bool]($noise.Lines -match 'RI_PERSIST')) `
+    ($noise.Lines -join ' | ')
+Remove-Item Env:RI_PERSIST -ErrorAction SilentlyContinue
+
+# Arrange - declining (a blank answer) must not persist an empty placeholder
+$global:PersistCall.Clear()
+Set-ReadHostAnswer ''
+
+# Act
+$value = Resolve-Input -Name T -Prompt 'p' -Secret -EnvVar 'RI_DECLINE' 6>$null
+
+# Assert
+Assert-Equal 'a blank answer is still returned as-is' -Expected '' -Actual $value
+Assert-That 'nothing was persisted for a declined secret' ($global:PersistCall.Count -eq 0) `
+($global:PersistCall -join ' | ')
+Assert-That 'and no variable was created' (-not (Test-Path Env:RI_DECLINE))
+
+# Arrange - no -EnvVar at all means there is nowhere to persist to
+$global:PersistCall.Clear()
+Set-ReadHostAnswer 'no-home'
+
+# Act
+$value = Resolve-Input -Name T -Prompt 'p' -Secret
+
+# Assert
+Assert-Equal 'the value is still returned' -Expected 'no-home' -Actual $value
+Assert-That 'without -EnvVar there is nothing to persist' ($global:PersistCall.Count -eq 0)
+
+Write-TestSection '11. a whitespace-only environment variable counts as unset'
 # Arrange
 $env:RI_WS = '   '
 Set-ReadHostAnswer ''
@@ -184,7 +243,7 @@ $value = Resolve-Input -Name W -Prompt 'p' -Secret -EnvVar 'RI_WS'
 Assert-Equal 'and the same for a secret' -Expected '' -Actual $value
 Remove-Item Env:RI_WS
 
-Write-TestSection '11. -Secret cannot be combined with a rule it would ignore'
+Write-TestSection '12. -Secret cannot be combined with a rule it would ignore'
 foreach ($combo in @(
         @{ Label = '-Secret -Require'; Extra = @{ Require = $true } }
         @{ Label = '-Secret -Pattern'; Extra = @{ Pattern = '^x$' } }
@@ -200,7 +259,7 @@ foreach ($combo in @(
         { Resolve-Input -Name T -Prompt 'p' -Secret @extra }
 }
 
-Write-TestSection '12. the topic rules'
+Write-TestSection '13. the topic rules'
 # Act + Assert
 Assert-Equal 'topics normalised, de-duplicated, order kept' -Expected 'b-two, a-one' `
     -Actual (Format-TopicList -Value ' B-Two , a-one, A-ONE ,, b-two ' -Label 'T')
@@ -222,7 +281,7 @@ Assert-Equal '20 topics is accepted' -Expected '' -Actual (Get-TopicListError -V
 Assert-Throws 'Format-TopicList prepends the label' -Match '^Topics lists 21 topics' `
     { Format-TopicList -Value $twentyOne -Label 'Topics' }
 
-Write-TestSection '13. the slug rule has one wording'
+Write-TestSection '14. the slug rule has one wording'
 # Act
 $requirement = Get-SlugRequirement
 
@@ -232,7 +291,7 @@ Assert-That 'the requirement is a real sentence' `
 Assert-Throws 'the slug error uses that wording' -Match ([regex]::Escape($requirement)) `
     { Format-Slug -Value 'Not A Slug' -Label 'Name' }
 
-Write-TestSection '14. Confirm-Proceed'
+Write-TestSection '15. Confirm-Proceed'
 # Arrange
 Set-ReadHostAnswer 'yes'
 
@@ -251,11 +310,11 @@ $answer = Confirm-Proceed -Action 'do it' 6>$null
 # Assert
 Assert-That 'anything else does not' ($answer -eq $false)
 
-Write-TestSection '15. the module surface'
+Write-TestSection '16. the module surface'
 $exported = (Get-Command -Module Common-Input).Name
 foreach ($n in 'Get-InputError', 'Assert-InputValid', 'Get-CanonicalChoice', 'Show-InputHint',
     'Read-SecretValue', 'Read-PromptedValue', 'Resolve-KnownValue', 'Split-TopicList',
-    'Format-Quoted') {
+    'Format-Quoted', 'Set-PersistedEnvVar') {
     Assert-That "$n stays private" ($n -notin $exported)
 }
 

@@ -323,6 +323,24 @@ function Show-InputHint {
     }
 }
 
+function Set-PersistedEnvVar {
+    <#
+    .SYNOPSIS
+        Writes an environment variable at User scope, so it outlives this
+        process.
+    .DESCRIPTION
+        Not exported. The one call in this module that reaches the machine's
+        actual persistent environment rather than just this process - split
+        out so a test can override it instead of writing there for real.
+    #>
+    param(
+        [Parameter(Mandatory)][string]$Name,
+        [Parameter(Mandatory)][AllowEmptyString()][string]$Value
+    )
+
+    [Environment]::SetEnvironmentVariable($Name, $Value, 'User')
+}
+
 function Read-SecretValue {
     <#
     .SYNOPSIS
@@ -420,7 +438,9 @@ function Resolve-Input {
     .PARAMETER Secret
         Read without echo, and skip trimming, validation and canonicalisation
         on every path. Excludes the checking parameters, so a rule that would
-        be ignored cannot be passed in the first place.
+        be ignored cannot be passed in the first place. A non-empty answer is
+        persisted back to -EnvVar at User scope, so the prompt is only ever
+        answered once per machine.
     .PARAMETER EnvVar
         Environment variable to check before prompting, so a value set once on
         the machine is never asked for again. A variable that is empty or
@@ -467,7 +487,18 @@ function Resolve-Input {
     if ($PSCmdlet.ParameterSetName -eq 'Secret') {
         if ($fromEnv) { return $fromEnv }
         Show-InputHint -Hint $Hint -EnvVar $EnvVar
-        return (Read-SecretValue -Prompt $Prompt)
+        $typed = Read-SecretValue -Prompt $Prompt
+
+        # A blank answer means the caller declined the secret - persisting an
+        # empty value would create a variable that looks set but skips this
+        # same prompt with nothing behind it next time.
+        if ($EnvVar -and $typed) {
+            Set-PersistedEnvVar -Name $EnvVar -Value $typed
+            [Environment]::SetEnvironmentVariable($EnvVar, $typed)
+            Write-Detail "Saved to the $EnvVar environment variable - this prompt will not ask again"
+        }
+
+        return $typed
     }
 
     $rules = @{
