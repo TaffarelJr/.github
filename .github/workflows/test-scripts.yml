@@ -5,20 +5,20 @@
 # *.Tests.ps1 itself, so this file lists nothing and stays identical at every
 # template layer. A leaf has no scripts/, so this is a clean no-op there.
 
-name: Continuous Integration
+name: Test Scripts
 
 on:
   pull_request:
     paths:
       - scripts/**
-      - .github/workflows/continuous-integration.yml
+      - .github/workflows/test-scripts.yml
 
   # Can be triggered manually
   workflow_dispatch:
 
 # A newer push to the same branch supersedes a run still in progress.
 concurrency:
-  group: continuous-integration-${{ github.ref }}
+  group: test-scripts-${{ github.ref }}
   cancel-in-progress: true
 
 jobs:

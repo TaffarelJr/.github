@@ -72,7 +72,7 @@ function Remove-TemplateOnlyFile {
 function Remove-ScriptsFolder {
     <#
     .SYNOPSIS
-        Deletes the scripts/ folder and its CI workflow in a code repo, since
+        Deletes the scripts/ folder and test-scripts.yml in a code repo, since
         nothing is derived from one and there is nothing left to test.
     #>
     param(
@@ -83,7 +83,7 @@ function Remove-ScriptsFolder {
 
     Write-Doing 'Removing scripts/'
     $dir = Join-Path $RepoPath 'scripts'
-    $workflow = Join-Path $RepoPath '.github/workflows/continuous-integration.yml'
+    $workflow = Join-Path $RepoPath '.github/workflows/test-scripts.yml'
     if (-not (Test-Path $dir) -and -not (Test-Path $workflow)) {
         Write-Done -Skip 'already removed'
         return
