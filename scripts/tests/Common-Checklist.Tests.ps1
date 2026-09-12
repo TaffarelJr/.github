@@ -8,9 +8,11 @@ Set-StrictMode -Version Latest
 $ErrorActionPreference = 'Stop'
 
 Import-Module (Join-Path $PSScriptRoot 'TestKit.psm1') -Force
-Import-ScriptModule 'Common-Console', 'Common-Checklist'
+Import-ScriptModule 'Common-Console', 'Common-File', 'Common-Checklist'
 
 function Reset-Checklist { Import-ScriptModule 'Common-Checklist' }
+
+$root = New-TestRoot -Name 'checklist'
 
 Write-TestSection '1. nothing queued'
 # Arrange
@@ -70,9 +72,61 @@ Assert-That 'the heading takes the spelling first seen' `
     ([bool]($run.Lines -cmatch '^  ▸ GitHub$')) `
     ($run.Lines -join ' | ')
 
-Write-TestSection '4. the module surface'
+Write-TestSection '4. nothing queued writes no file'
+# Arrange
+Reset-Checklist
+$repo = New-TestFolder -Path (Join-Path $root 'empty')
+
+# Act
+$path = Write-ManualChecklistFile -RepoPath $repo
+
+# Assert
+Assert-That 'returns $null' ($null -eq $path)
+Assert-That 'and NEXT-STEPS.md is not created' `
+(-not (Test-Path -LiteralPath (Join-Path $repo 'NEXT-STEPS.md')))
+
+Write-TestSection '5. queued items render as a Markdown checklist'
+# Arrange
+Reset-Checklist
+$repo = New-TestFolder -Path (Join-Path $root 'queued')
+Add-ManualItem -Category 'GitHub' -Title 'Enable immutable releases'
+Add-ManualItem -Category 'Codecov' -Title 'Add the token' -Steps 'Open the settings', 'Paste it'
+Add-ManualItem -Category 'GitHub' -Title 'Check the rulesets'
+
+# Act
+$path = Write-ManualChecklistFile -RepoPath $repo
+$lines = Get-Content -LiteralPath $path
+
+# Assert
+Assert-Equal 'writes NEXT-STEPS.md at the repo root' `
+    -Expected (Join-Path $repo 'NEXT-STEPS.md') -Actual $path
+Assert-That 'each category is its own heading' (@($lines -match '^## ').Count -eq 2) `
+    ($lines -join ' | ')
+Assert-That 'each item is an unchecked box' `
+([bool]($lines -match '^- \[ \] Enable immutable releases$') -and
+    [bool]($lines -match '^- \[ \] Check the rulesets$') -and
+    [bool]($lines -match '^- \[ \] Add the token$')) ($lines -join ' | ')
+Assert-That 'steps sit indented under the title' `
+([bool]($lines -match '^      Open the settings$') -and
+    [bool]($lines -match '^      Paste it$')) ($lines -join ' | ')
+
+Write-TestSection '6. a second run overwrites rather than appends'
+# Arrange - $repo and its file still exist from section 5
+Reset-Checklist
+Add-ManualItem -Category 'GitHub' -Title 'Only this one now'
+
+# Act
+$path = Write-ManualChecklistFile -RepoPath $repo
+$lines = Get-Content -LiteralPath $path
+
+# Assert
+Assert-That 'the stale item is gone' (-not ($lines -match 'Enable immutable releases')) `
+    ($lines -join ' | ')
+Assert-That 'only the current queue is written' ([bool]($lines -match 'Only this one now'))
+
+Write-TestSection '7. the module surface'
 $exported = (Get-Command -Module Common-Checklist).Name
-foreach ($n in 'Add-ManualItem', 'Show-ManualChecklist') {
+foreach ($n in 'Add-ManualItem', 'Show-ManualChecklist', 'Write-ManualChecklistFile') {
     Assert-That "$n is exported" ($n -in $exported)
 }
 

@@ -10,6 +10,9 @@ $ErrorActionPreference = 'Stop'
 Import-Module (Join-Path $PSScriptRoot 'TestKit.psm1') -Force
 Import-ScriptModule 'Common-Console', 'Common-Process', 'Common-Checklist', 'Common-Input',
     'Common-GitHub'
+$ghModule = Get-Module Common-GitHub
+
+$root = New-TestRoot -Name 'github'
 
 # Every case starts from a fresh record of gh calls and an empty checklist.
 function Reset-Case {
@@ -338,18 +341,46 @@ Assert-Equal 'and borrows the token the login stored' -Expected 'fresh-token' -A
 Reset-GhAccount 6>$null
 Remove-Item Env:GH_TOKEN -ErrorAction SilentlyContinue
 
-Write-TestSection '12. the module surface'
+Write-TestSection '12. which release workflows a Code repo still needs'
+# Arrange
+$neither = New-TestFolder -Path (Join-Path $root 'neither')
+New-TestFolder -Path (Join-Path $neither '.github/workflows') | Out-Null
+
+$both = New-TestFolder -Path (Join-Path $root 'both')
+$bothWf = New-TestFolder -Path (Join-Path $both '.github/workflows')
+Set-Content -LiteralPath (Join-Path $bothWf 'continuous-integration.yml') -Value 'x'
+Set-Content -LiteralPath (Join-Path $bothWf 'publish-release.yml') -Value 'x'
+
+$ciOnly = New-TestFolder -Path (Join-Path $root 'ci-only')
+$ciOnlyWf = New-TestFolder -Path (Join-Path $ciOnly '.github/workflows')
+Set-Content -LiteralPath (Join-Path $ciOnlyWf 'continuous-integration.yml') -Value 'x'
+
+# Act
+$gotNeither = & $ghModule { param($p) Get-ManualCiWorkflow -RepoPath $p } $neither
+$gotBoth = & $ghModule { param($p) Get-ManualCiWorkflow -RepoPath $p } $both
+$gotCiOnly = & $ghModule { param($p) Get-ManualCiWorkflow -RepoPath $p } $ciOnly
+
+# Assert
+Assert-That 'neither file present queues both' (@($gotNeither).Count -eq 2) `
+(($gotNeither | ForEach-Object Title) -join ' | ')
+Assert-That 'both files present queues nothing' (@($gotBoth).Count -eq 0)
+Assert-That 'only the missing one is queued' `
+(@($gotCiOnly).Count -eq 1 -and $gotCiOnly[0].Title -match 'Publish Release') `
+    ($gotCiOnly[0].Title)
+
+Write-TestSection '13. the module surface'
 $exported = (Get-Command -Module Common-GitHub).Name
 foreach ($n in 'Get-ActiveGhAccount', 'Get-CodeqlSetup', 'Set-CodeqlSetup',
     'Write-CodeqlOutcome', 'Register-CodeqlSetupItem', 'Register-UncheckedSetting',
     'Get-GhToken', 'Request-GhLogin', 'Test-GhAdminAccess', 'Restore-GhAccount',
-    'Get-ManualGitHubSetting', 'Get-CodeqlTargetLanguage') {
+    'Get-ManualGitHubSetting', 'Get-CodeqlTargetLanguage', 'Get-ManualCiWorkflow') {
     Assert-That "$n stays private" ($n -notin $exported)
 }
 
 foreach ($n in 'Invoke-Gh', 'Invoke-GhRead', 'Get-RepoOwner', 'Add-CodeqlLanguage',
     'New-GitHubRepo', 'Set-WorkflowPermission', 'Set-RepoSecret', 'Set-RepoVariable',
-    'Initialize-Topic', 'Enable-Codeql', 'Use-GhAccount', 'Reset-GhAccount') {
+    'Initialize-Topic', 'Enable-Codeql', 'Use-GhAccount', 'Reset-GhAccount',
+    'Register-ManualGitHubSetting', 'Register-ManualCiWorkflow') {
     Assert-That "$n is exported" ($n -in $exported)
 }
 

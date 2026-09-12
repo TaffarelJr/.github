@@ -373,7 +373,18 @@ try {
     $wsFile = Write-WorkspaceFile -RepoPath $targetPath `
         -RepoName $repo `
         -ChainPaths $chain
-    Start-VSCode -Target $wsFile
+
+    # Queued before the file is written, so it can be opened as the active
+    # tab alongside the workspace, rather than only printed after VS Code is
+    # already up. Console output at the very end is unaffected - it just
+    # reads the same queue back.
+    Register-ManualGitHubSetting -OwnerRepo $ownerRepo -Visibility $Visibility
+    if ($Kind -eq 'Code') {
+        Register-ManualCiWorkflow -RepoPath $targetPath
+    }
+    $checklistFile = Write-ManualChecklistFile -RepoPath $targetPath
+
+    Start-VSCode -Target $wsFile -ActiveFile $checklistFile
 }
 finally {
     # Runs on every way out of the try above - success, a thrown error, the
@@ -399,8 +410,7 @@ finally {
 # failure here would name the last step, which had already succeeded.
 Clear-Step
 
-Register-ManualGitHubSetting -OwnerRepo $ownerRepo -Visibility $Visibility
-Show-ManualChecklist   -OwnerRepo $ownerRepo
+Show-ManualChecklist -OwnerRepo $ownerRepo
 Show-Summary
 
 if ((Get-ChangeCount) -eq 0) {

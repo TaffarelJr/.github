@@ -212,11 +212,29 @@ catch { Assert-That 'resolves without throwing on a shadowing function' $false `
     $_.Exception.Message }
 finally { Remove-Item -Path function:global:code -ErrorAction SilentlyContinue }
 
-Write-TestSection '12. the module surface'
+Write-TestSection '12. building the launch arguments'
+# Arrange + Act
+$targetOnly = & $vscode { Get-VSCodeArgument -Target 'ws.code-workspace' }
+$withActive = & $vscode {
+    Get-VSCodeArgument -Target 'ws.code-workspace' -ActiveFile 'NEXT-STEPS.md'
+}
+$blankActive = & $vscode { Get-VSCodeArgument -Target 'ws.code-workspace' -ActiveFile '' }
+
+# Assert
+Assert-That 'target alone is a single-element list' `
+(@($targetOnly).Count -eq 1 -and $targetOnly[0] -eq 'ws.code-workspace') `
+    ($targetOnly -join ' | ')
+Assert-That 'an active file is appended after the target' `
+(@($withActive).Count -eq 2 -and $withActive[0] -eq 'ws.code-workspace' -and
+    $withActive[1] -eq 'NEXT-STEPS.md') ($withActive -join ' | ')
+Assert-That 'a blank active file is omitted, not passed through' `
+(@($blankActive).Count -eq 1) ($blankActive -join ' | ')
+
+Write-TestSection '13. the module surface'
 $exported = (Get-Command -Module Common-VSCode).Name
 foreach ($n in 'Get-NativePath', 'Get-RelativePosixPath', 'Get-FolderSettingsBlock',
     'Get-WorkspaceFolder', 'Find-Solution', 'Get-WorkspaceSetting', 'Get-VSCodeExecutable',
-    'Get-WorkspaceContent', 'Get-VSCodeCandidate') {
+    'Get-WorkspaceContent', 'Get-VSCodeCandidate', 'Get-VSCodeArgument') {
     Assert-That "$n stays private" ($n -notin $exported)
 }
 

@@ -92,7 +92,50 @@ function Show-ManualChecklist {
     Write-Host ""
 }
 
+function Write-ManualChecklistFile {
+    <#
+    .SYNOPSIS
+        Writes everything Add-ManualItem queued to NEXT-STEPS.md, so it
+        survives past the console and can be opened as a file.
+    .DESCRIPTION
+        Mirrors Show-ManualChecklist's grouping, as Markdown checkboxes
+        instead of a console banner. Always overwrites: the file is a
+        snapshot of this run, not something to preserve edits to, and the
+        reader is expected to delete it once every box is checked.
+    .OUTPUTS
+        [string] - the file's path, or $null if there was nothing to queue.
+    #>
+    param([Parameter(Mandatory)][string]$RepoPath)
+
+    if ($script:ManualItems.Count -eq 0) { return $null }
+
+    $lines = [System.Collections.Generic.List[string]]::new()
+    $lines.AddRange([string[]]@(
+            '# Next Steps'
+            ''
+            "Do these by hand when convenient. Delete this file once they're all"
+            'checked - it is not part of the repo.'
+        ))
+
+    foreach ($group in ($script:ManualItems | Group-Object Category)) {
+        $lines.Add('')
+        $lines.Add("## $($group.Name)")
+        foreach ($item in $group.Group) {
+            $lines.Add('')
+            $lines.Add("- [ ] $($item.Title)")
+            foreach ($step in $item.Steps) {
+                $lines.Add("      $step")
+            }
+        }
+    }
+
+    $path = Join-Path $RepoPath 'NEXT-STEPS.md'
+    Write-TextFile -Path $path -Lines ([string[]]@($lines))
+    return $path
+}
+
 Export-ModuleMember -Function @(
     'Add-ManualItem'
     'Show-ManualChecklist'
+    'Write-ManualChecklistFile'
 )

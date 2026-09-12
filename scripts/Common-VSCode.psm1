@@ -367,6 +367,27 @@ function Get-VSCodeExecutable {
     return $null
 }
 
+function Get-VSCodeArgument {
+    <#
+    .SYNOPSIS
+        Builds the argument list for launching VS Code.
+    .DESCRIPTION
+        Not exported. Split out from Start-VSCode so the two-path case - a
+        workspace plus a file to focus - is unit-testable without launching
+        a process. A blank ActiveFile is omitted rather than passed through,
+        so the caller does not have to know that itself.
+    #>
+    param(
+        [Parameter(Mandatory)][string]$Target,
+        [string]$ActiveFile
+    )
+
+    $arguments = [System.Collections.Generic.List[string]]::new()
+    $arguments.Add($Target)
+    if ($ActiveFile) { $arguments.Add($ActiveFile) }
+    return , @($arguments.ToArray())
+}
+
 function Start-VSCode {
     <#
     .SYNOPSIS
@@ -375,8 +396,14 @@ function Start-VSCode {
         The path can be a folder or a .code-workspace. Never throws - failing
         to open an editor should not fail a successful scaffold - so finding
         it is inside the same guard as launching it.
+    .PARAMETER ActiveFile
+        A file to also open, as the focused tab - the end-of-run checklist,
+        say. Omitted when there is nothing to focus.
     #>
-    param([Parameter(Mandatory)][ValidatePattern('\S')][string]$Target)
+    param(
+        [Parameter(Mandatory)][ValidatePattern('\S')][string]$Target,
+        [string]$ActiveFile
+    )
 
     Write-Doing "Opening $(Split-Path -Leaf $Target) in VS Code"
     try {
@@ -386,7 +413,8 @@ function Start-VSCode {
             return
         }
 
-        Start-Process -FilePath $exe -ArgumentList @($Target) | Out-Null
+        $arguments = Get-VSCodeArgument -Target $Target -ActiveFile $ActiveFile
+        Start-Process -FilePath $exe -ArgumentList $arguments | Out-Null
         Write-Done
     }
     catch {
