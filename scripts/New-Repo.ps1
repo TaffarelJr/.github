@@ -31,10 +31,10 @@
 
     Every value is prompted for - there are no command-line parameters to
     supply instead, so a template layer can always add its own prompt but can
-    never add a parameter to this inherited script. The three secret tokens
+    never add a parameter to this inherited script. The two secret tokens
     are the one exception: each is read from its environment variable first
-    (CODECOV_TOKEN, COPILOT_PAT, TEMPLATE_SYNC_PAT), so setting one up is a
-    one-time task rather than something typed in on every run.
+    (CODECOV_TOKEN, TEMPLATE_SYNC_PAT), so setting one up is a one-time task
+    rather than something typed in on every run.
 
     Idempotent & resumable: re-running verifies what's already done
     and only fills gaps. It never overwrites post-scaffold changes.
@@ -42,7 +42,7 @@
 .EXAMPLE
     ./scripts/New-Repo.ps1
     Prompts for everything - Kind, Name, Visibility, Description, Homepage,
-    Topics, and the three tokens (skipped for any already set as an
+    Topics, and the two tokens (skipped for any already set as an
     environment variable).
 #>
 
@@ -155,13 +155,6 @@ try {
         -Hint "Codecov token at https://app.codecov.io/account/gh/$owner/org-upload-token" `
         -Secret
 
-    $CopilotToken = Resolve-Input -Name CopilotToken `
-        -Prompt 'COPILOT_PAT value (blank to skip)' `
-        -EnvVar 'COPILOT_PAT' `
-        -Hint 'Copilot PAT at https://github.com/settings/personal-access-tokens', `
-        'Drafts the release-notes summary; without it the notes get a placeholder' `
-        -Secret
-
     $TemplateSyncToken = Resolve-Input -Name TemplateSyncToken `
         -Prompt 'TEMPLATE_SYNC_PAT value (blank to skip)' `
         -EnvVar 'TEMPLATE_SYNC_PAT' `
@@ -203,13 +196,6 @@ try {
         -Value "https://github.com/$($ctx.SourceOwnerRepo).git"
     Set-RepoVariable -OwnerRepo $ownerRepo -Name TEMPLATE_SYNC_STRATEGY `
         -Value $(if ($Kind -eq 'Code') { 'merge' } else { 'rebase' })
-
-    if ($CopilotToken) {
-        Set-RepoSecret -OwnerRepo $ownerRepo -Name COPILOT_PAT -Token $CopilotToken
-    }
-    else {
-        Write-Skip 'COPILOT_PAT not provided - release summaries stay manual'
-    }
 
     # Sync still runs without this, but a PR opened with the default token cannot
     # trigger CI, so a required status check would never report and the PR would
