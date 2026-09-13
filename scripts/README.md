@@ -29,9 +29,9 @@ with a default where one makes sense (press ENTER to take it),
 and a confirmation before anything is created.
 A bad answer is explained and asked again.
 
-The one exception is the three secret tokens.
+The one exception is the two secret tokens.
 Each is read from the **environment variable of the same name** first —
-`CODECOV_TOKEN`, `COPILOT_PAT`, `TEMPLATE_SYNC_PAT` —
+`CODECOV_TOKEN`, `TEMPLATE_SYNC_PAT` —
 and only prompted for when that is unset.
 Set them once as user environment variables and they are never asked for again.
 Leave one blank to skip it; the run says what that costs.
