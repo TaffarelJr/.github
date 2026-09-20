@@ -756,7 +756,7 @@ function Get-ManualCiWorkflow {
             Steps = @(
                 "Build and test this repo's own code."
                 "Produce a version.txt and upload a 'packages' artifact -"
-                "or whatever names draft-release's build-workflow/artifact-name."
+                "or whatever names release/draft's build-workflow/artifact-name."
                 'Via a short-lived branch and PR; rulesets require it.'
             )
         }
