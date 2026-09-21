@@ -31,6 +31,13 @@ description: YAML, GitHub Actions, and settings.yml conventions
 - Prefer a shared action or reusable workflow over copying steps into
   another repo: a whole job becomes a reusable workflow
   (`on: workflow_call`), a set of steps becomes a composite action.
+- Thread a computed `${{ }}` value through a step's own `env:` rather than
+  interpolating it directly into `run:`. GitHub's own
+  [security hardening guide][securityHardeningDocs] names this as the
+  mitigation for script injection via untrusted input; applying it to every
+  non-literal value, not only ones a value's own source is known to be
+  safe, means never having to judge case by case which values are safe to
+  skip it for.
 
 ## settings.yml
 
@@ -47,3 +54,4 @@ Declare only what differs from the immediate parent.
 <!-- Public URIs (alphabetical) -->
 
 [ghSettings]: https://github.com/repository-settings/app
+[securityHardeningDocs]: https://docs.github.com/en/actions/security-for-github-actions/security-guides/security-hardening-for-github-actions
