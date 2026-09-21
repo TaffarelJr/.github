@@ -6,6 +6,10 @@ description: YAML, GitHub Actions, and settings.yml conventions
 # YAML
 
 - Quote a value only when it needs it.
+- When a value is quoted, use `'` rather than `"`, except where `"` is
+  required (a value containing `'` itself, or an escape sequence). VS Code
+  enforces this on save via `yaml.format.singleQuote` in
+  [.vscode/settings.json][vscodeSettingsFile].
 - Put the schema comment on the first line where one exists,
   so editors validate the file:
   `# yaml-language-server: $schema=https://json.schemastore.org/...`
@@ -38,6 +42,7 @@ Declare only what differs from the immediate parent.
 <!-- Source Code URIs (folders first, then files; each alphabetical) -->
 
 [settingsFile]: ../settings.yml
+[vscodeSettingsFile]: ../../.vscode/settings.json
 
 <!-- Public URIs (alphabetical) -->
 
