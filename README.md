@@ -111,7 +111,7 @@ the file is inherited unchanged, free to customize by hand if you want to.
 | 📄[CODE_OF_CONDUCT.md][cocFile]      |                                 |                                 | Linked to by other files |
 | 📄[CONTRIBUTING.md][contribFile]     |                                 |                ✅                | Links to other files     |
 | 📄GOVERNANCE.md                      |                —                |                —                | Not implemented          |
-| 📄[LICENSE][licenseFile]             |               N/A               |            ✅ (private)          |                          |
+| 📄[LICENSE][licenseFile]             |               N/A               |           ✅ (private)           |                          |
 | 📄[SECURITY.md][securityFile]        |                                 |                ✅                | Links to GitHub repo     |
 | 📄[SUPPORT.md][supportFile]          |                                 |                ✅                | Links to other files     |
 
@@ -127,6 +127,7 @@ the file is inherited unchanged, free to customize by hand if you want to.
 | &nbsp;├─📄[codecov.yml][codecovFile]                              |               N/A               |                ➕                | [Coverage thresholds][codecovDocs]              |
 | &nbsp;├─📄[copilot-instructions.md][copilotFile]                  |               N/A               |                ✅                | [Copilot configuration][ghCopilot]              |
 | &nbsp;├─📄[dependabot.yml][dependabotFile]                        |               N/A               |                ➕                | [Dependabot configuration][ghDependabot]        |
+| &nbsp;├─📄[gitversion.yml][gitVersionFile]                        |               N/A               |                                 | [How the version is calculated][releaseFile]    |
 | &nbsp;├─📄[pull_request_template.md][prTemplateFile]              |                                 |                                 | [GitHub Pull Request template][ghPRTemplate]    |
 | &nbsp;└─📄[settings.yml][settingsFile]                            |               N/A               |                ✅                | [Repo configuration][ghSettings]                |
 
@@ -136,14 +137,14 @@ workflow below marked *via* is a thin trigger that calls one.
 
 ### [GitHub Workflows][ghWorkflows]
 
-| Workflow                                                                           | Description                                                                              |
-| :---------------------------------------------------------------------------------- | :---------------------------------------------------------------------------------------- |
-| 📁[.github/][githubFolder]                                                         |                                                                                           |
-| &nbsp;└─📁[workflows/][workflowFolder]                                             |                                                                                           |
-| &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;├─📄[Draft Release][draftWorkflow]       | Entry point for [cutting a release][releaseFile], via [TaffarelJr/.actions][actionsRepo] |
-| &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;├─📄[Template Sync][syncWorkflow]        | Brings changes from a template repo, via [TaffarelJr/.actions][actionsRepo]              |
-| &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;├─📄[Test Scripts][testScriptsWorkflow]  | Runs the [scaffolding scripts'][scriptsFile] tests on both platforms                     |
-| &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;└─📄[Validate Codecov][codecovWorkflow]  | Checks `codecov.yml` against Codecov's validator, via [TaffarelJr/.actions][actionsRepo] |
+| Workflow                                                                         | Description                                                                              |
+| :------------------------------------------------------------------------------- | :--------------------------------------------------------------------------------------- |
+| 📁[.github/][githubFolder]                                                        |                                                                                          |
+| &nbsp;└─📁[workflows/][workflowFolder]                                            |                                                                                          |
+| &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;├─📄[Draft Release][draftWorkflow]      | Entry point for [cutting a release][releaseFile], via [TaffarelJr/.actions][actionsRepo] |
+| &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;├─📄[Template Sync][syncWorkflow]       | Brings changes from a template repo, via [TaffarelJr/.actions][actionsRepo]              |
+| &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;├─📄[Test Scripts][testScriptsWorkflow] | Runs the [scaffolding scripts'][scriptsFile] tests on both platforms                     |
+| &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;└─📄[Validate Codecov][codecovWorkflow] | Checks `codecov.yml` against Codecov's validator, via [TaffarelJr/.actions][actionsRepo] |
 
 ### Other Files
 
@@ -160,7 +161,6 @@ workflow below marked *via* is a thin trigger that calls one.
 | 📄[.gitignore][gitIgnoreFile]         | Built using [scaffolding][ghGitIgnore]                   |
 | 📄[.gitmessage][gitMessageFile]       | [Commit message template][styleguideFile-commit]         |
 | 📄[AGENTS.md][agentsFile]             | [AI agent instructions][aiFile]                          |
-| 📄[GitVersion.yml][gitVersionFile]    | [How the version is calculated][releaseFile]             |
 
 <!-- Source Code URIs (folders first, then files; each alphabetical) -->
 
@@ -180,6 +180,7 @@ workflow below marked *via* is a thin trigger that calls one.
 [codecovFile]: ./.github/codecov.yml
 [copilotFile]: ./.github/copilot-instructions.md
 [dependabotFile]: ./.github/dependabot.yml
+[gitVersionFile]: ./.github/gitversion.yml
 [fundingFile]: ./.github/FUNDING.yml
 [prTemplateFile]: ./.github/pull_request_template.md
 [settingsFile]: ./.github/settings.yml
@@ -200,7 +201,6 @@ workflow below marked *via* is a thin trigger that calls one.
 [agentsFile]: ./AGENTS.md
 [cocFile]: ./CODE_OF_CONDUCT.md
 [contribFile]: ./CONTRIBUTING.md
-[gitVersionFile]: ./GitVersion.yml
 [licenseFile]: ./LICENSE
 [securityFile]: ./SECURITY.md
 [supportFile]: ./SUPPORT.md
